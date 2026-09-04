@@ -1,0 +1,57 @@
+[
+  {
+    "id": 1,
+    "name": "Algramo - Dispensador Circular Estación Central",
+    "store_type": "zero_waste_dispenser",
+    "address": "Av. Libertador Bernardo O'Higgins 3150, Estación Central, Santiago",
+    "latitude": -33.4518,
+    "longitude": -70.6812,
+    "rating_eco": 4.9,
+    "discount_green": 15.0,
+    "description": "Estación de recarga inteligente de productos de limpieza y abarrotes en envases retornables con chip RFID."
+  },
+  {
+    "id": 2,
+    "name": "EcoFeria La Reina - Mercado Agroecológico",
+    "store_type": "feria_agroecologica",
+    "address": "Av. Alcalde Fernando Castillo Velasco 9750, La Reina, Santiago",
+    "latitude": -33.4421,
+    "longitude": -70.5369,
+    "rating_eco": 5.0,
+    "discount_green": 10.0,
+    "description": "Mercado directo de campesinos y cooperativas orgánicas certificadas de la zona central."
+  },
+  {
+    "id": 3,
+    "name": "Cooperativa La Vega Central - Sector Frutas y Granel",
+    "store_type": "cooperativa_popular",
+    "address": "Antonia López de Bello 743, Recoleta, Santiago",
+    "latitude": -33.4308,
+    "longitude": -70.6515,
+    "rating_eco": 4.4,
+    "discount_green": 12.0,
+    "description": "Venta directa de legumbres, granos y hortalizas de pequeños agricultores a precios mayoristas y sin intermediarios."
+  },
+  {
+    "id": 4,
+    "name": "Supermercado LiquiVerde Hub Providencia",
+    "store_type": "supermercado_eco",
+    "address": "Av. Providencia 2124, Providencia, Santiago",
+    "latitude": -33.4245,
+    "longitude": -70.6120,
+    "rating_eco": 4.6,
+    "discount_green": 8.0,
+    "description": "Supermercado con sección destacada de productos locales, sellos de huella de carbono y zona a granel."
+  },
+  {
+    "id": 5,
+    "name": "Mercado Sustentable Barrio Italia",
+    "store_type": "tienda_granel",
+    "address": "Av. Italia 1439, Providencia, Santiago",
+    "latitude": -33.4473,
+    "longitude": -70.6272,
+    "rating_eco": 4.8,
+    "discount_green": 10.0,
+    "description": "Emporio a granel especializado en frutos secos, harinas integrales, legumbres y cosmética sólida biodegradable."
+  }
+]

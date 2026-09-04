@@ -1,0 +1,4 @@
+# Algorithms package
+from app.algorithms.scoring import calculate_sustainability_score, calculate_category_baseline
+from app.algorithms.knapsack import optimize_shopping_list
+from app.algorithms.substitution import find_substitutes_for_product
