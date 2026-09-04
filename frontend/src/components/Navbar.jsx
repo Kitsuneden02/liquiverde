@@ -52,47 +52,60 @@ export default function Navbar({ activeTab, setActiveTab, onOpenScanner }) {
           </div>
         </div>
 
-        {/* Navigation Tabs */}
-        <nav style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          {navItems.map((item) => {
-            const Icon = item.icon;
-            const isActive = activeTab === item.id;
-            return (
-              <button
-                key={item.id}
-                onClick={() => setActiveTab(item.id)}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.45rem',
-                  padding: '0.55rem 0.9rem',
-                  borderRadius: 'var(--radius-sm)',
-                  border: 'none',
-                  background: isActive ? 'rgba(16, 185, 129, 0.18)' : 'transparent',
-                  color: isActive ? 'var(--primary-light)' : 'var(--text-sub)',
-                  fontWeight: isActive ? 600 : 500,
-                  fontSize: '0.9rem',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s',
-                  boxShadow: isActive ? 'inset 0 0 0 1px rgba(52, 211, 153, 0.3)' : 'none'
-                }}
-              >
-                <Icon size={17} />
-                <span>{item.label}</span>
-              </button>
-            );
-          })}
-        </nav>
+        {/* Navigation Tabs and Quick Scan Action grouped with consistent spacing */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
+          <nav style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+            {navItems.map((item) => {
+              const Icon = item.icon;
+              const isActive = activeTab === item.id;
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => setActiveTab(item.id)}
+                  style={{
+                    height: '42px',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '0.45rem',
+                    padding: '0 0.85rem',
+                    borderRadius: 'var(--radius-sm)',
+                    border: 'none',
+                    background: isActive ? 'rgba(16, 185, 129, 0.18)' : 'transparent',
+                    color: isActive ? 'var(--primary-light)' : 'var(--text-sub)',
+                    fontWeight: isActive ? 600 : 500,
+                    fontSize: '0.85rem',
+                    whiteSpace: 'nowrap',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s',
+                    boxShadow: isActive ? 'inset 0 0 0 1px rgba(52, 211, 153, 0.3)' : 'none'
+                  }}
+                >
+                  <Icon size={17} />
+                  <span>{item.label}</span>
+                </button>
+              );
+            })}
+          </nav>
 
-        {/* Scan Barcode Quick Action */}
-        <button
-          onClick={onOpenScanner}
-          className="btn-primary"
-          style={{ padding: '0.55rem 1.1rem', fontSize: '0.85rem' }}
-        >
-          <ScanBarcode size={18} />
-          <span>Escanear EAN-13</span>
-        </button>
+          {/* Scan Barcode Quick Action */}
+          <button
+            onClick={onOpenScanner}
+            className="btn-primary"
+            style={{
+              height: '42px',
+              padding: '0 1.1rem',
+              fontSize: '0.85rem',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              whiteSpace: 'nowrap',
+              flexShrink: 0
+            }}
+          >
+            <ScanBarcode size={18} />
+            <span>Escanear EAN-13</span>
+          </button>
+        </div>
       </div>
     </header>
   );

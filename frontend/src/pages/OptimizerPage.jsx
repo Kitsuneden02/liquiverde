@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { Sliders, DollarSign, Leaf, Sparkles, AlertCircle, ShoppingCart, RefreshCw, CheckCircle2, TrendingUp, Droplets } from 'lucide-react';
-import confetti from 'canvas-confetti';
 import { optimizeKnapsack, fetchProducts } from '../services/api';
 import ProductCard from '../components/ProductCard';
 
@@ -32,16 +31,6 @@ export default function OptimizerPage({
 
       const result = await optimizeKnapsack(payload);
       setOptimizationResult(result);
-
-      // Microinteracción de celebración con confetti
-      if (result.selected_products && result.selected_products.length > 0) {
-        confetti({
-          particleCount: 60,
-          spread: 60,
-          origin: { y: 0.7 },
-          colors: ['#10b981', '#34d399', '#f59e0b', '#38bdf8']
-        });
-      }
     } catch (err) {
       setError(err.message || 'Error al ejecutar la optimización de mochila');
     } finally {
