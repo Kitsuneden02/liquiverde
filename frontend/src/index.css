@@ -267,3 +267,113 @@ input[type="range"]::-moz-range-track {
   height: 450px;
   width: 100%;
 }
+
+/* ==========================================================================
+   Responsive Navigation Bar
+   ========================================================================== */
+.nav-label-short {
+  display: none;
+}
+
+.nav-label-full {
+  display: inline;
+}
+
+.nav-desktop-container {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+}
+
+.nav-tabs-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.nav-tab-btn {
+  height: 42px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0 0.85rem;
+  border-radius: var(--radius-sm);
+  border: none;
+  background: transparent;
+  color: var(--text-sub);
+  font-weight: 500;
+  font-size: 0.85rem;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.nav-tab-btn.active {
+  background: rgba(16, 185, 129, 0.18);
+  color: var(--primary-light);
+  font-weight: 600;
+  box-shadow: inset 0 0 0 1px rgba(52, 211, 153, 0.3);
+}
+
+.nav-tab-btn:hover:not(.active) {
+  background: rgba(255, 255, 255, 0.05);
+  color: #ffffff;
+}
+
+.nav-scan-btn {
+  height: 42px;
+  padding: 0 1.1rem;
+  font-size: 0.85rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.nav-mobile-toggle {
+  display: none;
+}
+
+/* Medium screens (880px to 1200px) - Compact Single-Line Navigation */
+@media (max-width: 1200px) {
+  .nav-label-full {
+    display: none;
+  }
+  .nav-label-short {
+    display: inline;
+  }
+  .nav-desktop-container {
+    gap: 0.75rem;
+  }
+  .nav-tabs-wrapper {
+    gap: 0.25rem;
+  }
+  .nav-tab-btn {
+    padding: 0 0.65rem;
+    font-size: 0.82rem;
+    gap: 0.35rem;
+  }
+  .nav-scan-btn {
+    padding: 0 0.85rem;
+    font-size: 0.82rem;
+  }
+}
+
+/* Small Screens / Mobile (< 880px) - Hamburger Menu Drawer */
+@media (max-width: 880px) {
+  .nav-desktop-container {
+    display: none !important;
+  }
+  .nav-mobile-toggle {
+    display: flex !important;
+    align-items: center;
+    gap: 0.6rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .logo-subtext {
+    display: none;
+  }
+}
