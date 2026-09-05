@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { MapPin, Navigation, Star, Tag, RefreshCw, Compass, Search, Filter, Store as StoreIcon, Leaf, Sparkles, ExternalLink } from 'lucide-react';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
@@ -14,14 +14,36 @@ const ecoIcon = new L.Icon({
   shadowSize: [41, 41]
 });
 
-// Componente auxiliar para animar el paneo del mapa cuando se selecciona una tienda en la lista
-function ChangeView({ center, zoom }) {
+// Controlador auxiliar para animar el paneo del mapa y sincronizar popups sin bloqueos
+function MapController({ selectionTrigger, zoom = 14, markerRefs }) {
   const map = useMap();
+
   useEffect(() => {
-    if (center && center[0] && center[1]) {
-      map.setView(center, zoom, { animate: true });
+    if (!selectionTrigger || !selectionTrigger.store) return;
+    const { store, source } = selectionTrigger;
+
+    if (source === 'menu') {
+      // 1. Cerrar cualquier popup activo anterior para evitar que Leaflet bloquee el paneo
+      map.closePopup();
+
+      // 2. Desplazamiento cinemático fluido usando flyTo (funciona para cualquier distancia)
+      map.flyTo([store.latitude, store.longitude], zoom, {
+        duration: 0.85,
+        easeLinearity: 0.25
+      });
+
+      // 3. Abrir el popup del marcador seleccionado al terminar el vuelo
+      const timer = setTimeout(() => {
+        const marker = markerRefs.current?.[store.id];
+        if (marker) {
+          marker.openPopup();
+        }
+      }, 880);
+
+      return () => clearTimeout(timer);
     }
-  }, [center, zoom, map]);
+  }, [selectionTrigger, zoom, map, markerRefs]);
+
   return null;
 }
 
@@ -46,10 +68,12 @@ export default function StoreMapPage() {
   const [stores, setStores] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedStore, setSelectedStore] = useState(null);
-  const [mapCenter, setMapCenter] = useState([-33.4440, -70.6350]); // Santiago Centro
-  const [mapZoom, setMapZoom] = useState(12);
+  const [selectionTrigger, setSelectionTrigger] = useState(null);
+  const [mapCenter] = useState([-33.4440, -70.6350]); // Santiago Centro
+  const [mapZoom] = useState(12);
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const markerRefs = useRef({});
 
   useEffect(() => {
     fetchStores()
@@ -90,10 +114,14 @@ export default function StoreMapPage() {
     });
   }, [stores, selectedCategory, searchQuery]);
 
-  const handleSelectStore = (store) => {
+  const handleSelectFromMenu = (store) => {
     setSelectedStore(store);
-    setMapCenter([store.latitude, store.longitude]);
-    setMapZoom(14);
+    setSelectionTrigger({ store, source: 'menu', timestamp: Date.now() });
+  };
+
+  const handleSelectFromMap = (store) => {
+    setSelectedStore(store);
+    setSelectionTrigger({ store, source: 'map', timestamp: Date.now() });
   };
 
   return (
@@ -249,7 +277,7 @@ export default function StoreMapPage() {
                   <div
                     key={store.id}
                     className="glass-panel"
-                    onClick={() => handleSelectStore(store)}
+                    onClick={() => handleSelectFromMenu(store)}
                     style={{
                       padding: '1.1rem',
                       cursor: 'pointer',
@@ -334,7 +362,11 @@ export default function StoreMapPage() {
                 scrollWheelZoom={false}
                 style={{ height: '100%', width: '100%' }}
               >
-                <ChangeView center={mapCenter} zoom={mapZoom} />
+                <MapController
+                  selectionTrigger={selectionTrigger}
+                  zoom={14}
+                  markerRefs={markerRefs}
+                />
                 <TileLayer
                   attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                   url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -342,10 +374,17 @@ export default function StoreMapPage() {
                 {filteredStores.map((store) => (
                   <Marker
                     key={store.id}
+                    ref={(ref) => {
+                      if (ref) {
+                        markerRefs.current[store.id] = ref;
+                      } else {
+                        delete markerRefs.current[store.id];
+                      }
+                    }}
                     position={[store.latitude, store.longitude]}
                     icon={ecoIcon}
                     eventHandlers={{
-                      click: () => handleSelectStore(store)
+                      click: () => handleSelectFromMap(store)
                     }}
                   >
                     <Popup>
