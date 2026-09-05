@@ -13,6 +13,7 @@ Implementa:
 """
 
 from typing import List, Dict, Any, Optional, Tuple
+from app.algorithms.substitution import generate_substitution_reason
 
 def compute_item_utility(product: Any, alpha: float) -> float:
     """
@@ -189,5 +190,174 @@ def optimize_shopping_list(
         "budget_remaining": round(max(0.0, budget - total_cost), 2),
         "estimated_savings_clp": estimated_savings,
         "co2_avoided_kg": co2_avoided,
-        "optimization_method": method_used
+        "optimization_method": method_used,
+        "original_products": [],
+        "original_total_cost": round(estimated_conventional_cost, 2),
+        "original_total_co2_kg": round(estimated_conventional_co2, 2),
+        "substitutions": []
+    }
+
+
+def optimize_basket_with_substitutes(
+    basket_products: List[Any],
+    all_products: List[Any],
+    budget: float,
+    sustainability_weight: float = 0.5,
+    mandatory_product_ids: Optional[List[int]] = None
+) -> Dict[str, Any]:
+    """
+    Optimiza una canasta existente de compras considerando alternativas de sustitución
+    para cada producto seleccionado, balanceando entre Ahorro (alpha=0) y Planeta (alpha=1).
+    
+    Aplica una variante de Multiple-Choice Knapsack para seleccionar exactamente la mejor
+    opción (producto original o sustituto) por cada ítem de la canasta, respetando el presupuesto.
+    """
+    if not basket_products:
+        return optimize_shopping_list(all_products, budget, sustainability_weight, mandatory_product_ids)
+
+    mandatory_ids = set(mandatory_product_ids or [])
+    original_total_cost = sum(float(p.price) for p in basket_products)
+    original_total_co2 = sum(float(p.co2_kg) for p in basket_products)
+    original_total_water = sum(float(p.water_liters) for p in basket_products)
+
+    # 1. Construir las opciones candidatas para cada producto de la canasta
+    slots = []
+    for orig in basket_products:
+        if orig.id in mandatory_ids:
+            slots.append((orig, [orig]))
+            continue
+
+        candidates = [orig]
+        for alt in all_products:
+            if alt.id == orig.id:
+                continue
+
+            is_direct = (orig.substitute_id == alt.id or getattr(alt, "substitute_id", None) == orig.id)
+            same_cat = (alt.category == orig.category)
+
+            if not (is_direct or same_cat):
+                continue
+
+            # Es un sustituto viable si aporta ventaja en precio, CO2, o puntuación
+            alt_price = float(alt.price)
+            alt_co2 = float(alt.co2_kg)
+            alt_score = float(alt.sustainability_score)
+            orig_price = float(orig.price)
+            orig_co2 = float(orig.co2_kg)
+            orig_score = float(orig.sustainability_score)
+
+            price_advantage = alt_price < orig_price
+            eco_advantage = (alt_co2 < orig_co2) or (alt_score > orig_score)
+
+            if is_direct or price_advantage or eco_advantage:
+                candidates.append(alt)
+
+        slots.append((orig, candidates))
+
+    # 2. Multiple-Choice Knapsack DP: Elegir 1 candidato por slot maximizando utilidad bajo budget
+    # Estado DP: current_cost -> (current_utility, [(original, chosen)])
+    dp: Dict[int, Tuple[float, List[Tuple[Any, Any]]]] = {0: (0.0, [])}
+
+    for orig, candidates in slots:
+        # Ponderar candidatos con compute_item_utility
+        scored_candidates = []
+        for cand in candidates:
+            base_util = compute_item_utility(cand, sustainability_weight)
+            # Si es un sustituto directo curado, dar un pequeño incentivo
+            if orig.substitute_id == cand.id:
+                base_util += 5.0
+            scored_candidates.append((base_util, cand))
+
+        # Ordenar por utilidad descendente
+        scored_candidates.sort(key=lambda x: x[0], reverse=True)
+
+        next_dp: Dict[int, Tuple[float, List[Tuple[Any, Any]]]] = {}
+        for current_cost, (current_util, current_pairs) in dp.items():
+            for util, cand in scored_candidates:
+                cand_cost = int(round(float(cand.price)))
+                new_cost = current_cost + cand_cost
+                if new_cost <= budget:
+                    new_util = current_util + util
+                    if new_cost not in next_dp or next_dp[new_cost][0] < new_util:
+                        next_dp[new_cost] = (new_util, current_pairs + [(orig, cand)])
+
+        if next_dp:
+            dp = next_dp
+        else:
+            # Si el presupuesto no permite todas las opciones preferidas, tomar la opción más económica
+            cheapest_cand = min(candidates, key=lambda c: float(c.price))
+            c_cost = int(round(float(cheapest_cand.price)))
+            fallback_dp: Dict[int, Tuple[float, List[Tuple[Any, Any]]]] = {}
+            for current_cost, (current_util, current_pairs) in dp.items():
+                if current_cost + c_cost <= budget:
+                    fallback_dp[current_cost + c_cost] = (
+                        current_util + compute_item_utility(cheapest_cand, sustainability_weight),
+                        current_pairs + [(orig, cheapest_cand)]
+                    )
+            if fallback_dp:
+                dp = fallback_dp
+            else:
+                break
+
+    if not dp:
+        # Fallback: devolver los productos originales si no hubo solución posible
+        best_pairs = [(p, p) for p in basket_products]
+    else:
+        # Seleccionar la solución con mayor utilidad acumulada
+        best_cost, (best_util, best_pairs) = max(dp.items(), key=lambda item: item[1][0])
+
+    selected_products = [pair[1] for pair in best_pairs]
+    total_cost = sum(float(p.price) for p in selected_products)
+    total_co2 = sum(float(p.co2_kg) for p in selected_products)
+    total_water = sum(float(p.water_liters) for p in selected_products)
+
+    # 3. Detectar sustituciones realizadas y generar razones comprensibles
+    substitutions = []
+    for orig, chosen in best_pairs:
+        if orig.id != chosen.id:
+            price_diff = float(orig.price) - float(chosen.price)
+            co2_reduction = float(orig.co2_kg) - float(chosen.co2_kg)
+            water_saved = float(orig.water_liters) - float(chosen.water_liters)
+            score_gain = float(chosen.sustainability_score) - float(orig.sustainability_score)
+
+            reason = generate_substitution_reason(
+                original=orig,
+                alt=chosen,
+                price_diff=price_diff,
+                co2_reduction=co2_reduction,
+                water_saved=water_saved
+            )
+
+            substitutions.append({
+                "original_product": orig,
+                "recommended_product": chosen,
+                "price_difference_clp": round(price_diff, 2),
+                "co2_reduction_kg": round(co2_reduction, 2),
+                "water_saved_liters": round(water_saved, 1),
+                "sustainability_gain": round(score_gain, 1),
+                "recommendation_reason": reason
+            })
+
+    estimated_savings = max(0.0, round(original_total_cost - total_cost, 0))
+    co2_avoided = max(0.0, round(original_total_co2 - total_co2, 2))
+    avg_score = (
+        round(sum(float(p.sustainability_score) for p in selected_products) / len(selected_products), 1)
+        if selected_products else 0.0
+    )
+
+    return {
+        "selected_products": selected_products,
+        "total_cost": round(total_cost, 2),
+        "total_co2_kg": round(total_co2, 2),
+        "total_water_liters": round(total_water, 1),
+        "average_sustainability_score": avg_score,
+        "budget_limit": round(budget, 2),
+        "budget_remaining": round(max(0.0, budget - total_cost), 2),
+        "estimated_savings_clp": estimated_savings,
+        "co2_avoided_kg": co2_avoided,
+        "optimization_method": "multiple_choice_basket_optimization",
+        "original_products": basket_products,
+        "original_total_cost": round(original_total_cost, 2),
+        "original_total_co2_kg": round(original_total_co2, 2),
+        "substitutions": substitutions
     }

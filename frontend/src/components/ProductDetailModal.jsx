@@ -1,9 +1,15 @@
 import React from 'react';
-import { X, Leaf, Droplets, Package, MapPin, ShieldCheck, DollarSign, ArrowRight } from 'lucide-react';
+import { X, Leaf, Droplets, Package, MapPin, ShieldCheck, DollarSign, ArrowRight, ShoppingCart, Check } from 'lucide-react';
 
 import { formatCategoryName } from '../utils/formatters';
 
-export default function ProductDetailModal({ product, onClose, onSelectForCompare }) {
+export default function ProductDetailModal({
+  product,
+  onClose,
+  onSelectForCompare,
+  onAddToCart,
+  isInBasket
+}) {
   if (!product) return null;
 
   const ecoGrade = (product.eco_score || 'c').toLowerCase();
@@ -187,11 +193,28 @@ export default function ProductDetailModal({ product, onClose, onSelectForCompar
           </div>
         </div>
 
-        {/* Action button */}
-        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem' }}>
+        {/* Action buttons */}
+        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', flexWrap: 'wrap' }}>
           <button className="btn-secondary" onClick={onClose}>
             Cerrar
           </button>
+
+          {onAddToCart && (
+            <button
+              onClick={() => onAddToCart(product, 1)}
+              className="btn-secondary"
+              style={{
+                background: isInBasket ? 'rgba(16, 185, 129, 0.2)' : 'rgba(255, 255, 255, 0.08)',
+                borderColor: isInBasket ? 'var(--primary-light)' : 'var(--border-light)',
+                color: isInBasket ? 'var(--primary-light)' : '#ffffff',
+                fontWeight: 600
+              }}
+            >
+              {isInBasket ? <Check size={16} /> : <ShoppingCart size={16} />}
+              <span>{isInBasket ? 'Añadir otro (+1)' : 'Añadir a la Canasta'}</span>
+            </button>
+          )}
+
           <button
             className="btn-primary"
             onClick={() => {

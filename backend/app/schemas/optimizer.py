@@ -22,6 +22,15 @@ class KnapsackRequest(BaseModel):
         description="IDs de productos que deben incluirse obligatoriamente si el presupuesto lo permite."
     )
 
+class SubstituteRecommendation(BaseModel):
+    original_product: ProductOut
+    recommended_product: ProductOut
+    price_difference_clp: float  # Positive means you save money
+    co2_reduction_kg: float      # Positive means emissions avoided
+    water_saved_liters: float    # Positive means water conserved
+    sustainability_gain: float   # Difference in sustainability score
+    recommendation_reason: str
+
 class KnapsackResponse(BaseModel):
     selected_products: List[ProductOut]
     total_cost: float
@@ -32,13 +41,8 @@ class KnapsackResponse(BaseModel):
     budget_remaining: float
     estimated_savings_clp: float
     co2_avoided_kg: float
-    optimization_method: str  # 'exact_dynamic_programming' or 'greedy_ratio'
-
-class SubstituteRecommendation(BaseModel):
-    original_product: ProductOut
-    recommended_product: ProductOut
-    price_difference_clp: float  # Positive means you save money
-    co2_reduction_kg: float      # Positive means emissions avoided
-    water_saved_liters: float    # Positive means water conserved
-    sustainability_gain: float   # Difference in sustainability score
-    recommendation_reason: str
+    optimization_method: str  # 'exact_dynamic_programming', 'greedy_ratio', or 'basket_substitutes_optimization'
+    original_products: Optional[List[ProductOut]] = []
+    original_total_cost: Optional[float] = None
+    original_total_co2_kg: Optional[float] = None
+    substitutions: Optional[List[SubstituteRecommendation]] = []

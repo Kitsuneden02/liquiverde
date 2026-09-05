@@ -948,6 +948,31 @@ export default function ComparatorPage({
                   {selectedProduct.sustainability_score} / 100
                 </strong>
               </div>
+
+              {/* Add to Basket Action for Conventional Product */}
+              {onToggleBasket && (
+                <div style={{ marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid var(--border-light)', display: 'flex', justifyContent: 'flex-end' }}>
+                  <button
+                    onClick={() => onToggleBasket(selectedProduct)}
+                    className="btn-secondary"
+                    style={{
+                      width: '100%',
+                      justifyContent: 'center',
+                      fontSize: '0.85rem',
+                      background: basketProductIds.includes(selectedProduct.id) ? 'rgba(16, 185, 129, 0.2)' : 'rgba(255, 255, 255, 0.06)',
+                      borderColor: basketProductIds.includes(selectedProduct.id) ? 'var(--primary-light)' : 'var(--border-light)',
+                      color: basketProductIds.includes(selectedProduct.id) ? 'var(--primary-light)' : '#ffffff'
+                    }}
+                  >
+                    <Check size={16} />
+                    <span>
+                      {basketProductIds.includes(selectedProduct.id)
+                        ? 'En mi canasta'
+                        : 'Añadir a mi Canasta'}
+                    </span>
+                  </button>
+                </div>
+              )}
             </div>
           </div>
 
@@ -968,7 +993,7 @@ export default function ComparatorPage({
                 textTransform: 'uppercase'
               }}
             >
-              <Sparkles size={14} /> Alternativas Verdes & Ahorro Sugeridas
+              <Sparkles size={14} /> Alternativas Verdes y Ahorro Sugeridas
             </div>
 
             {loading ? (

@@ -20,7 +20,7 @@ export default function Navbar({ activeTab, setActiveTab, onOpenScanner }) {
     { id: 'optimizer', label: 'Optimizador Mochila', shortLabel: 'Optimizador', icon: Sliders },
     { id: 'comparator', label: 'Comparador Sustitutos', shortLabel: 'Comparador', icon: RefreshCw },
     { id: 'dashboard', label: 'Impacto Ambiental', shortLabel: 'Impacto', icon: BarChart3 },
-    { id: 'map', label: 'Tiendas & Rutas', shortLabel: 'Tiendas', icon: MapPin },
+    { id: 'map', label: 'Tiendas y Rutas', shortLabel: 'Tiendas', icon: MapPin },
   ];
 
   // Close mobile drawer when selecting an item

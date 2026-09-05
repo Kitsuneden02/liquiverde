@@ -1,7 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Navbar from './components/Navbar';
 import BarcodeScannerModal from './components/BarcodeScannerModal';
 import ProductDetailModal from './components/ProductDetailModal';
+import CartFloatingButton from './components/CartFloatingButton';
+import CartDrawer from './components/CartDrawer';
 import CatalogPage from './pages/CatalogPage';
 import OptimizerPage from './pages/OptimizerPage';
 import ComparatorPage from './pages/ComparatorPage';
@@ -12,23 +14,111 @@ import { Leaf, ExternalLink } from 'lucide-react';
 export default function App() {
   const [activeTab, setActiveTab] = useState('catalog');
   const [isScannerOpen, setIsScannerOpen] = useState(false);
-  const [basketProductIds, setBasketProductIds] = useState([]);
+  const [isCartOpen, setIsCartOpen] = useState(false);
   const [compareProduct, setCompareProduct] = useState(null);
   const [detailProduct, setDetailProduct] = useState(null);
+  const [optimizerConfig, setOptimizerConfig] = useState(null);
 
-  const handleToggleBasket = (product) => {
-    setBasketProductIds((prev) => {
-      if (prev.includes(product.id)) {
-        return prev.filter((id) => id !== product.id);
+  // Cart State with LocalStorage persistence
+  const [cartItems, setCartItems] = useState(() => {
+    try {
+      const saved = localStorage.getItem('liquiverde_cart');
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('liquiverde_cart', JSON.stringify(cartItems));
+    } catch (e) {
+      console.error('Failed to save cart to localStorage', e);
+    }
+  }, [cartItems]);
+
+  // Derived metrics & backwards-compatible basket IDs
+  const basketProductIds = cartItems.map((item) => item.product.id);
+  const totalCartCount = cartItems.reduce((acc, item) => acc + item.quantity, 0);
+  const totalCartAmount = cartItems.reduce((acc, item) => acc + item.product.price * item.quantity, 0);
+
+  const handleAddToCart = (product, quantity = 1) => {
+    setCartItems((prev) => {
+      const index = prev.findIndex((item) => item.product.id === product.id);
+      if (index >= 0) {
+        const next = [...prev];
+        next[index] = { ...next[index], quantity: next[index].quantity + quantity };
+        return next;
       } else {
-        return [...prev, product.id];
+        return [...prev, { product, quantity }];
       }
     });
+  };
+
+  const handleToggleBasket = (product) => {
+    setCartItems((prev) => {
+      const exists = prev.some((item) => item.product.id === product.id);
+      if (exists) {
+        return prev.filter((item) => item.product.id !== product.id);
+      } else {
+        return [...prev, { product, quantity: 1 }];
+      }
+    });
+  };
+
+  const handleUpdateCartQuantity = (productId, delta) => {
+    setCartItems((prev) =>
+      prev
+        .map((item) => {
+          if (item.product.id === productId) {
+            const nextQty = item.quantity + delta;
+            return nextQty > 0 ? { ...item, quantity: nextQty } : null;
+          }
+          return item;
+        })
+        .filter(Boolean)
+    );
+  };
+
+  const handleRemoveFromCart = (productId) => {
+    setCartItems((prev) => prev.filter((item) => item.product.id !== productId));
+  };
+
+  const handleClearCart = () => {
+    setCartItems([]);
   };
 
   const handleSelectForCompare = (product) => {
     setCompareProduct(product);
     setActiveTab('comparator');
+  };
+
+  const handleGoToOptimizerFromCart = (items, totalAmount) => {
+    // Determine suggested budget: round up to nearest 1000 or at least 5000
+    const suggestedBudget = Math.max(Math.ceil(totalAmount / 1000) * 1000, 5000);
+    setOptimizerConfig({
+      onlyUseBasket: true,
+      budget: suggestedBudget,
+      trigger: Date.now()
+    });
+    setActiveTab('optimizer');
+    setIsCartOpen(false);
+  };
+
+  const handleAdoptSubstitutions = (subs) => {
+    if (!subs || subs.length === 0) return;
+    setCartItems((prev) => {
+      let next = [...prev];
+      for (const sub of subs) {
+        const origId = sub.original_product.id;
+        const altProd = sub.recommended_product;
+        const index = next.findIndex((item) => item.product.id === origId);
+        if (index >= 0) {
+          next[index] = { ...next[index], product: altProd };
+        }
+      }
+      return next;
+    });
   };
 
   return (
@@ -57,6 +147,8 @@ export default function App() {
             onSelectForCompare={handleSelectForCompare}
             onToggleBasket={handleToggleBasket}
             onOpenDetails={(p) => setDetailProduct(p)}
+            optimizerConfig={optimizerConfig}
+            onAdoptSubstitutions={handleAdoptSubstitutions}
           />
         )}
 
@@ -78,11 +170,34 @@ export default function App() {
         )}
       </main>
 
+      {/* Floating Action Button for Cart */}
+      <CartFloatingButton
+        isOpen={isCartOpen}
+        onToggle={() => setIsCartOpen((prev) => !prev)}
+        itemCount={totalCartCount}
+        totalAmount={totalCartAmount}
+      />
+
+      {/* Cart Drawer / Slide-over */}
+      <CartDrawer
+        isOpen={isCartOpen}
+        onClose={() => setIsCartOpen(false)}
+        cartItems={cartItems}
+        onUpdateQuantity={handleUpdateCartQuantity}
+        onRemoveItem={handleRemoveFromCart}
+        onClearCart={handleClearCart}
+        onSelectForCompare={handleSelectForCompare}
+        onGoToOptimizer={handleGoToOptimizerFromCart}
+        onGoToCatalog={() => setActiveTab('catalog')}
+      />
+
       {/* Barcode Scanner Modal (Accessible globally) */}
       <BarcodeScannerModal
         isOpen={isScannerOpen}
         onClose={() => setIsScannerOpen(false)}
         onSelectProductForComparison={handleSelectForCompare}
+        onAddToCart={handleAddToCart}
+        isInBasket={(productId) => basketProductIds.includes(productId)}
       />
 
       {/* Detailed Product Modal */}
@@ -91,6 +206,8 @@ export default function App() {
           product={detailProduct}
           onClose={() => setDetailProduct(null)}
           onSelectForCompare={handleSelectForCompare}
+          onAddToCart={handleAddToCart}
+          isInBasket={basketProductIds.includes(detailProduct.id)}
         />
       )}
 

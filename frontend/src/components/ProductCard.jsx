@@ -4,11 +4,11 @@ import { Leaf, Droplets, RefreshCw, Plus, Check, ShieldCheck, Sparkles, Coffee, 
 const CATEGORY_ICONS = {
   lacteos_y_vegetales: { icon: Leaf, label: 'Lácteo / Vegetal', color: '#34d399', bg: 'rgba(16, 185, 129, 0.12)' },
   proteinas_y_legumbres: { icon: HeartPulse, label: 'Proteína Eco', color: '#f59e0b', bg: 'rgba(245, 158, 11, 0.12)' },
-  abarrotes_y_cereales: { icon: Utensils, label: 'Abarrotes & Granos', color: '#fbbf24', bg: 'rgba(251, 191, 36, 0.12)' },
+  abarrotes_y_cereales: { icon: Utensils, label: 'Abarrotes y Granos', color: '#fbbf24', bg: 'rgba(251, 191, 36, 0.12)' },
   limpieza_y_hogar: { icon: Sparkles, label: 'Limpieza Circular', color: '#38bdf8', bg: 'rgba(56, 189, 248, 0.12)' },
   frutas_y_verduras: { icon: Apple, label: 'Agroecológico', color: '#10b981', bg: 'rgba(16, 185, 129, 0.15)' },
-  bebidas: { icon: Coffee, label: 'Bebida & Infusión', color: '#60a5fa', bg: 'rgba(96, 165, 250, 0.12)' },
-  desayuno_y_snacks: { icon: ShoppingBag, label: 'Snack & Desayuno', color: '#f472b6', bg: 'rgba(244, 114, 182, 0.12)' }
+  bebidas: { icon: Coffee, label: 'Bebida e Infusión', color: '#60a5fa', bg: 'rgba(96, 165, 250, 0.12)' },
+  desayuno_y_snacks: { icon: ShoppingBag, label: 'Snack y Desayuno', color: '#f472b6', bg: 'rgba(244, 114, 182, 0.12)' }
 };
 
 export default function ProductCard({
@@ -123,7 +123,7 @@ export default function ProductCard({
         <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
           {product.brand || 'Marca Local'}
         </div>
-        <h4 
+        <h4
           onClick={() => onOpenDetails && onOpenDetails(product)}
           style={{
             fontSize: '1rem',

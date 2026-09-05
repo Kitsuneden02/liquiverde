@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, ScanBarcode, Camera, Search, ArrowRight, AlertCircle, CheckCircle2, Sparkles } from 'lucide-react';
+import { X, ScanBarcode, Camera, Search, ArrowRight, AlertCircle, CheckCircle2, Sparkles, ShoppingCart, Check } from 'lucide-react';
 import { fetchProductByBarcode } from '../services/api';
 import { formatCategoryName } from '../utils/formatters';
 
@@ -11,7 +11,13 @@ const DEMO_BARCODES = [
   { label: '🌱 Lentejas a Granel (Eco)', code: '7801610002029' },
 ];
 
-export default function BarcodeScannerModal({ isOpen, onClose, onSelectProductForComparison }) {
+export default function BarcodeScannerModal({
+  isOpen,
+  onClose,
+  onSelectProductForComparison,
+  onAddToCart,
+  isInBasket
+}) {
   const [barcodeInput, setBarcodeInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [scannedProduct, setScannedProduct] = useState(null);
@@ -277,10 +283,29 @@ export default function BarcodeScannerModal({ isOpen, onClose, onSelectProductFo
             </div>
 
             {/* Action Buttons */}
-            <div style={{ display: 'flex', gap: '0.6rem', marginTop: '1rem' }}>
+            <div style={{ display: 'flex', gap: '0.6rem', marginTop: '1rem', flexWrap: 'wrap' }}>
+              {onAddToCart && (
+                <button
+                  className="btn-secondary"
+                  style={{
+                    flex: '1 1 140px',
+                    justifyContent: 'center',
+                    fontSize: '0.85rem',
+                    background: isInBasket && isInBasket(scannedProduct.id) ? 'rgba(16, 185, 129, 0.2)' : 'rgba(255, 255, 255, 0.08)',
+                    borderColor: isInBasket && isInBasket(scannedProduct.id) ? 'var(--primary-light)' : 'var(--border-light)',
+                    color: isInBasket && isInBasket(scannedProduct.id) ? 'var(--primary-light)' : '#ffffff',
+                    fontWeight: 600
+                  }}
+                  onClick={() => onAddToCart(scannedProduct, 1)}
+                >
+                  {isInBasket && isInBasket(scannedProduct.id) ? <Check size={16} /> : <ShoppingCart size={16} />}
+                  <span>{isInBasket && isInBasket(scannedProduct.id) ? 'En Canasta (+1)' : 'Añadir a Canasta'}</span>
+                </button>
+              )}
+
               <button
                 className="btn-primary"
-                style={{ flex: 1, justifyContent: 'center', fontSize: '0.85rem' }}
+                style={{ flex: '1 1 180px', justifyContent: 'center', fontSize: '0.85rem' }}
                 onClick={() => {
                   onSelectProductForComparison(scannedProduct);
                   onClose();

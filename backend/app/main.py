@@ -43,7 +43,7 @@ app.add_middleware(
 # Inclusión del router principal bajo /api
 app.include_router(api_router, prefix=settings.API_V1_STR)
 
-@app.get("/", tags=["Salud & Estado"])
+@app.get("/", tags=["Salud y Estado"])
 def root():
     return {
         "app": "LiquiVerde API",
