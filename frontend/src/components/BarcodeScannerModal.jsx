@@ -10,20 +10,20 @@ import {
   Check,
   AlertCircle,
   Video,
-  Smartphone,
   Info
 } from 'lucide-react';
 import { Html5Qrcode } from 'html5-qrcode';
 import { fetchProductByBarcode } from '../services/api';
 import { formatCategoryName } from '../utils/formatters';
 
+// Códigos 100% reales existentes en la base de datos de LiquiVerde (products_seed.json) y Open Food Facts
 const DEMO_BARCODES = [
-  { label: '🥛 Leche Plástica (Tradicional)', code: '7802100001011' },
-  { label: '🥩 Carne Vacuno (Alta Huella)', code: '7801610002012' },
-  { label: '🧴 FreeMet Lavaloza Eco', code: '7804652410014' },
+  { label: '🥛 Leche Entera (Soprole)', code: '7802900001308' },
+  { label: '🥩 Carne Molida (Vacuno)', code: '8436569263242' },
+  { label: '🧴 FreeMet Lavaloza Eco', code: '7804675001019' },
   { label: '🍫 Nutella (Open Food Facts)', code: '3017620422003' },
-  { label: '🌱 Lentejas a Granel (Eco)', code: '7801610002029' },
-  { label: '🍝 Spaghetti Carozzi', code: '7802500000012' },
+  { label: '🌱 Lentejas a Granel (Eco)', code: '8420020045133' },
+  { label: '🍝 Spaghetti N°5 (Carozzi)', code: '7802575004437' },
 ];
 
 export default function BarcodeScannerModal({
@@ -74,8 +74,14 @@ export default function BarcodeScannerModal({
     }
 
     try {
-      // Ensure previous instance is stopped
+      // 1. Ensure any previous instance is stopped
       await stopCamera();
+
+      // 2. Activate state FIRST so React mounts the isolated DOM element
+      setIsCameraActive(true);
+
+      // 3. Give React 60ms to paint the empty #barcode-scanner-reader div in DOM
+      await new Promise((resolve) => setTimeout(resolve, 60));
 
       const html5QrCode = new Html5Qrcode('barcode-scanner-reader');
       scannerRef.current = html5QrCode;
@@ -87,20 +93,18 @@ export default function BarcodeScannerModal({
           qrbox: { width: 280, height: 160 },
           aspectRatio: 1.3333
         },
-        (decodedText) => {
-          // Success callback
-          stopCamera();
+        async (decodedText) => {
+          // Success callback: stop camera first then lookup product
+          await stopCamera();
           handleLookup(decodedText);
         },
         () => {
-          // Frame read callback (ignore routine parse drops)
+          // Routine frame parse drops, ignore
         }
       );
-
-      setIsCameraActive(true);
     } catch (err) {
       console.error('Error starting camera scanner:', err);
-      setIsCameraActive(false);
+      await stopCamera();
       setCameraError(
         err.name === 'NotAllowedError' || err.message?.includes('Permission')
           ? 'Permiso de cámara denegado. Permite el acceso a la cámara en los ajustes del navegador.'
@@ -115,7 +119,7 @@ export default function BarcodeScannerModal({
     onClose();
   };
 
-  // Auto-stop camera if modal closes or changes
+  // Auto-stop camera if modal closes or unmounts
   useEffect(() => {
     if (!isOpen) {
       stopCamera();
@@ -174,6 +178,7 @@ export default function BarcodeScannerModal({
       }}>
         {/* Close Button */}
         <button
+          type="button"
           onClick={handleClose}
           style={{
             position: 'absolute',
@@ -221,9 +226,9 @@ export default function BarcodeScannerModal({
           border: '1px solid var(--border-light)'
         }}>
           <button
+            type="button"
             onClick={() => {
               setActiveTab('camera');
-              if (!isCameraActive) startCamera();
             }}
             style={{
               flex: 1,
@@ -245,6 +250,7 @@ export default function BarcodeScannerModal({
             <Camera size={16} /> Cámara en Vivo
           </button>
           <button
+            type="button"
             onClick={() => {
               setActiveTab('manual');
               stopCamera();
@@ -273,41 +279,65 @@ export default function BarcodeScannerModal({
         {/* CAMERA VIEW TAB */}
         {activeTab === 'camera' && (
           <div style={{ marginBottom: '1.5rem' }}>
+            <style>{`
+              #barcode-scanner-reader {
+                width: 100% !important;
+                border: 2px solid var(--primary-light) !important;
+                border-radius: var(--radius-sm) !important;
+                background: #000000 !important;
+                overflow: hidden !important;
+              }
+              #barcode-scanner-reader video {
+                width: 100% !important;
+                height: auto !important;
+                max-height: 280px !important;
+                object-fit: cover !important;
+                border-radius: var(--radius-sm) !important;
+              }
+              #barcode-scanner-reader__scan_region {
+                background: transparent !important;
+              }
+              #barcode-scanner-reader__dashboard {
+                display: none !important;
+              }
+            `}</style>
+
+            {/* Placeholder when camera is NOT active */}
+            {!isCameraActive && (
+              <div style={{
+                padding: '2rem 1.25rem',
+                textAlign: 'center',
+                background: '#040d0a',
+                borderRadius: 'var(--radius-sm)',
+                border: '2px dashed rgba(16, 185, 129, 0.35)'
+              }}>
+                <Video size={36} color="rgba(52, 211, 153, 0.6)" style={{ margin: '0 auto 0.5rem' }} />
+                <p style={{ fontSize: '0.92rem', color: '#ffffff', fontWeight: 600, marginBottom: '0.25rem' }}>
+                  Escáner con Cámara Real
+                </p>
+                <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', maxWidth: '340px', margin: '0 auto 1.2rem', lineHeight: 1.4 }}>
+                  Apunta la cámara del dispositivo directamente al código de barras del producto para escanearlo automáticamente.
+                </p>
+                <button
+                  type="button"
+                  onClick={startCamera}
+                  className="btn-primary"
+                  style={{ fontSize: '0.85rem', padding: '0.55rem 1.3rem' }}
+                >
+                  <Camera size={16} /> Iniciar Cámara
+                </button>
+              </div>
+            )}
+
+            {/* Dedicated container for Html5Qrcode video (NEVER contains React children to prevent unmount crashes) */}
             <div
               id="barcode-scanner-reader"
               style={{
-                width: '100%',
-                minHeight: isCameraActive ? '260px' : '180px',
-                background: '#040d0a',
-                borderRadius: 'var(--radius-sm)',
-                border: isCameraActive ? '2px solid var(--primary-light)' : '2px dashed rgba(16, 185, 129, 0.35)',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
-                overflow: 'hidden',
+                display: isCameraActive ? 'block' : 'none',
+                minHeight: isCameraActive ? '220px' : '0px',
                 position: 'relative'
               }}
-            >
-              {!isCameraActive && (
-                <div style={{ padding: '1.5rem', textAlign: 'center' }}>
-                  <Video size={36} color="rgba(52, 211, 153, 0.6)" style={{ margin: '0 auto 0.5rem' }} />
-                  <p style={{ fontSize: '0.88rem', color: '#ffffff', fontWeight: 600, marginBottom: '0.25rem' }}>
-                    Escáner con Cámara Real
-                  </p>
-                  <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', maxWidth: '340px', margin: '0 auto 1rem' }}>
-                    Apunta la cámara del dispositivo directamente al código de barras del producto para escanearlo automáticamente.
-                  </p>
-                  <button
-                    onClick={startCamera}
-                    className="btn-primary"
-                    style={{ fontSize: '0.85rem', padding: '0.55rem 1.2rem' }}
-                  >
-                    <Camera size={16} /> Iniciar Cámara
-                  </button>
-                </div>
-              )}
-            </div>
+            />
 
             {/* Camera Controls while scanning */}
             {isCameraActive && (
@@ -317,6 +347,7 @@ export default function BarcodeScannerModal({
                   Cámara activa • Apunta al código EAN-13
                 </span>
                 <button
+                  type="button"
                   onClick={stopCamera}
                   className="btn-outline"
                   style={{ fontSize: '0.75rem', padding: '0.3rem 0.75rem', borderColor: 'rgba(239, 68, 68, 0.4)', color: '#f87171' }}
@@ -361,6 +392,7 @@ export default function BarcodeScannerModal({
               {DEMO_BARCODES.map((item) => (
                 <button
                   key={item.code}
+                  type="button"
                   onClick={() => handleUseDemoCode(item.code)}
                   style={{
                     background: barcodeInput === item.code ? 'rgba(16, 185, 129, 0.25)' : 'rgba(255, 255, 255, 0.05)',
@@ -386,7 +418,7 @@ export default function BarcodeScannerModal({
                 type="text"
                 value={barcodeInput}
                 onChange={(e) => setBarcodeInput(e.target.value)}
-                placeholder="Ingresa o pega un código EAN-13 (ej: 7802100001011)"
+                placeholder="Ingresa o pega un código EAN-13 (ej: 7802900001308)"
                 style={{
                   flex: 1,
                   background: 'rgba(255, 255, 255, 0.06)',
@@ -500,6 +532,7 @@ export default function BarcodeScannerModal({
             <div style={{ display: 'flex', gap: '0.6rem', marginTop: '1rem', flexWrap: 'wrap' }}>
               {onAddToCart && (
                 <button
+                  type="button"
                   className="btn-secondary"
                   style={{
                     flex: '1 1 140px',
@@ -518,6 +551,7 @@ export default function BarcodeScannerModal({
               )}
 
               <button
+                type="button"
                 className="btn-primary"
                 style={{ flex: '1 1 180px', justifyContent: 'center', fontSize: '0.85rem' }}
                 onClick={() => {
