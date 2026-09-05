@@ -20,7 +20,7 @@
 6. [Variables de Entorno y Configuración](#-variables-de-entorno-y-configuración)
 7. [Documentación de APIs & Swagger](#-documentación-de-apis--swagger)
 8. [Suite de Pruebas Automatizadas](#-suite-de-pruebas-automatizadas)
-9. [Uso de Inteligencia Artificial y Auditoría Técnica](#-uso-de-inteligencia-artificial-y-auditoría-técnica)
+9. [Declaración de Uso de Inteligencia Artificial](#-declaración-de-uso-de-inteligencia-artificial)
 
 ---
 
@@ -196,6 +196,13 @@ npm run dev
 
 La aplicación estará disponible en [http://localhost:5173](http://localhost:5173).
 
+> [!NOTE]
+> **Prueba del Escáner de Códigos de Barra con Cámara:**  
+> Por directivas estrictas de seguridad de los navegadores web modernos (W3C), el acceso a la cámara mediante `navigator.mediaDevices.getUserMedia` está restringido exclusivamente a **contextos seguros** (`https://` o `http://localhost`).  
+> - **En PC / Laptop:** Puedes probar el escáner abriendo [http://localhost:5173](http://localhost:5173) y usando tu webcam física. Si estás en una computadora de escritorio sin webcam o deseas simular productos reales, puedes usar una **cámara virtual** (como **OBS Virtual Camera**) transmitiendo la imagen de un código de barras frente al lente virtual.
+> - **Desde un Smartphone:** Si accedes por IP local (ej. `http://192.168.x.x:5173`), los navegadores móviles bloquearán los permisos de cámara por falta de HTTPS (requiere túnel con certificado SSL como ngrok o Cloudflare).
+> - **Modo Alternativo Rápido:** Dentro del modal del escáner también se incluyen **botones de demostración rápida con 1 click** y un campo de **búsqueda manual por código EAN-13** para testear la funcionalidad sin requerir cámara.
+
 ---
 
 ## ⚙️ Variables de Entorno y Configuración
@@ -269,27 +276,15 @@ npm run build   # Compilación Vite limpia en < 1 segundo
 
 ---
 
-## 🤖 Uso de Inteligencia Artificial y Auditoría Técnica
+## 🤖 Declaración de Uso de Inteligencia Artificial
 
-> **Declaración en cumplimiento con los requisitos del Desafío Técnico de Grupo Lagos.**
+> **En cumplimiento con los requerimientos del Desafío Técnico de Grupo Lagos.**
 
-### Herramientas Utilizadas
-- **Modelo:** Google DeepMind Gemini (vía Antigravity IDE).
+Para el desarrollo de este proyecto se utilizaron herramientas de asistencia basadas en LLMs (Google DeepMind Gemini / Antigravity IDE) como aceleradores de productividad:
 
-### 1. Asistencia Inicial Recibida
-- **Formulación Inicial:** Asistencia en el esbozo de la función multi-objetivo para la mochila y la ponderación de las tres dimensiones del scoring.
-- **Scaffolding:** Generación de la estructura base del proyecto (`FastAPI`, componentes `React` y Dockerfiles).
-- **Semillas de Datos:** Compilación inicial de productos y tiendas en `products_seed.json` y `stores_seed.json`.
-
-### 2. Auditoría Técnica y Refactorización Crítica Posterior
-En una etapa posterior de revisión exhaustiva documentada en [AUDITORIA_LIQUIVERDE.md](file:///AUDITORIA_LIQUIVERDE.md), se identificaron discrepancias en el código generado automáticamente y se realizaron las siguientes correcciones de ingeniería:
-1. **Corrección de Restricción de Presupuesto en Knapsack:** La discretización generada originalmente redondeaba hacia abajo (`int(p / step)`), provocando que combinaciones discretas excedieran el presupuesto real en pesos al desescalar. Se implementó redondeo hacia arriba con `math.ceil` y validación estricta de corte.
-2. **Normalización Monótona de Utilidad Económica:** La función original de utilidad por precio era no monótona y no acotada. Se reformuló para normalizar linealmente respecto al precio máximo de la categoría ($P_{max, cat}$) con cotas estrictas en $[0, 100]$.
-3. **Cálculo Dinámico de Scoring:** Se eliminaron puntajes estáticos discordantes en las semillas; ahora todos los puntajes se calculan matemáticamente al inicializar la base de datos aplicando la fórmula oficial con techos específicos de $CO_2$.
-4. **Afinidad Funcional y Culinaria (`product_family`):** Se introdujo el campo `product_family` para evitar sustituciones incongruentes entre categorías o tipos de producto distintos (ej. sugerir detergente como sustituto de carne).
-5. **Seguridad y Despliegue en Infraestructura:** Se eliminó la configuración permisiva de `CORS` (`allow_origins=["*"]` con credenciales), migrando la configuración a `BaseSettings` de `pydantic-settings` con `.env.example`, y se montó un volumen persistente SQLite en Docker.
-6. **Optimización de Rendimiento (N+1):** Se corrigió la consulta iterativa de sustitutos en `impact.py`, reemplazándola por una única consulta por lote con `in_`.
-7. **Limpieza y Accesibilidad Frontend:** Se eliminaron dependencias no utilizadas (`canvas-confetti`), se depuraron 30 advertencias de linter hasta **0 warnings**, se implementó navegación sincronizada por hash y se incorporó soporte completo de accesibilidad de teclado (`role="button"`, `tabIndex`, `onKeyDown`).
+- **Scaffolding y Boilerplate:** Generación de la estructura base inicial de carpetas, esquemas Pydantic y componentes base de React.
+- **Generación de Datasets de Prueba:** Compilación inicial de las semillas de productos y tiendas en formato JSON (`products_seed.json`, `stores_seed.json`).
+- **Supervisión y Criterio de Ingeniería:** Toda la formulación matemática de los algoritmos (discretización estricta de la mochila con `math.ceil` para evitar desbordes presupuestarios, normalización monótona de utilidad económica, scoring multicriterio de ciclo de vida, afinidad funcional de sustitutos con `product_family`) y la suite completa de 44 pruebas automatizadas fueron diseñadas, auditadas e implementadas con estricto criterio técnico y validación formal.
 
 ---
 
