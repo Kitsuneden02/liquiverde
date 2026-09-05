@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Search, Filter, Sparkles, RefreshCw, X, Leaf, ShieldCheck } from 'lucide-react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { Search, Filter, Sparkles, RefreshCw, X, Leaf, ShieldCheck, ArrowUpDown } from 'lucide-react';
 import { fetchProducts, fetchCategories } from '../services/api';
 import ProductCard from '../components/ProductCard';
 import { formatCategoryName } from '../utils/formatters';
@@ -9,7 +9,7 @@ export default function CatalogPage({
   onToggleBasket,
   basketProductIds,
   onOpenDetails,
-  refreshTrigger = 0
+  scannedProductDiff = null
 }) {
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
@@ -19,6 +19,7 @@ export default function CatalogPage({
   const [selectedEcoScore, setSelectedEcoScore] = useState('');
   const [onlyOrganic, setOnlyOrganic] = useState(false);
   const [onlyFairTrade, setOnlyFairTrade] = useState(false);
+  const [sortBy, setSortBy] = useState('sustainability_desc');
 
   const loadCatalog = async () => {
     setLoading(true);
@@ -47,14 +48,52 @@ export default function CatalogPage({
       loadCatalog();
     }, 200);
     return () => clearTimeout(timer);
-  }, [searchQuery, selectedCategory, selectedEcoScore, onlyOrganic, onlyFairTrade, refreshTrigger]);
+  }, [searchQuery, selectedCategory, selectedEcoScore, onlyOrganic, onlyFairTrade]);
 
-  // Immediate refresh when a product was scanned into the system
+  // Smart Diff: Si el producto escaneado ya existe, no recarga ni parpadea. Si es nuevo, lo incorpora suavemente.
   useEffect(() => {
-    if (refreshTrigger > 0) {
-      loadCatalog();
+    if (!scannedProductDiff) return;
+
+    setProducts((prev) => {
+      const alreadyExists = prev.some(
+        (p) => p.id === scannedProductDiff.id || (p.barcode && p.barcode === scannedProductDiff.barcode)
+      );
+      if (alreadyExists) {
+        // Ya existe en el catálogo actual: no hacemos nada, cero parpadeo
+        return prev;
+      }
+      // Es una entrada genuinamente nueva traída de Open Food Facts: la incorporamos de inmediato
+      return [scannedProductDiff, ...prev];
+    });
+
+    if (scannedProductDiff.category) {
+      setCategories((prev) =>
+        prev.includes(scannedProductDiff.category) ? prev : [...prev, scannedProductDiff.category]
+      );
     }
-  }, [refreshTrigger]);
+  }, [scannedProductDiff]);
+
+  // Organización y ordenamiento del catálogo (Por defecto: Mayor Sostenibilidad / Eco-Score)
+  const sortedProducts = useMemo(() => {
+    return [...products].sort((a, b) => {
+      if (sortBy === 'sustainability_desc') {
+        return (b.sustainability_score || 0) - (a.sustainability_score || 0);
+      }
+      if (sortBy === 'price_asc') {
+        return (a.price || 0) - (b.price || 0);
+      }
+      if (sortBy === 'price_desc') {
+        return (b.price || 0) - (a.price || 0);
+      }
+      if (sortBy === 'co2_asc') {
+        return (a.co2_kg || 0) - (b.co2_kg || 0);
+      }
+      if (sortBy === 'name_asc') {
+        return a.name.localeCompare(b.name);
+      }
+      return 0;
+    });
+  }, [products, sortBy]);
 
   return (
     <div className="container" style={{ padding: '2rem 1.5rem 4rem' }}>
@@ -210,11 +249,46 @@ export default function CatalogPage({
         </div>
       </div>
 
-      {/* Product Results Counter */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
+      {/* Product Results Counter & Sort Selector */}
+      <div style={{
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: '1.25rem',
+        flexWrap: 'wrap',
+        gap: '0.75rem'
+      }}>
         <span style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>
-          Mostrando <strong style={{ color: '#ffffff' }}>{products.length}</strong> productos
+          Mostrando <strong style={{ color: '#ffffff' }}>{sortedProducts.length}</strong> productos
         </span>
+
+        {/* Sort Dropdown */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <span style={{ fontSize: '0.82rem', color: 'var(--text-sub)', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+            <ArrowUpDown size={14} color="var(--primary-light)" /> Ordenar:
+          </span>
+          <select
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value)}
+            style={{
+              background: 'rgba(0, 0, 0, 0.45)',
+              border: '1px solid var(--border-light)',
+              borderRadius: 'var(--radius-sm)',
+              padding: '0.45rem 0.85rem',
+              color: 'var(--text-main)',
+              fontSize: '0.82rem',
+              fontWeight: 600,
+              outline: 'none',
+              cursor: 'pointer'
+            }}
+          >
+            <option value="sustainability_desc" style={{ background: '#0e221b' }}>🌱 Mayor Sostenibilidad (Eco-Score)</option>
+            <option value="price_asc" style={{ background: '#0e221b' }}>💰 Menor Precio ($ a $$$)</option>
+            <option value="price_desc" style={{ background: '#0e221b' }}>🏷️ Mayor Precio ($$$ a $)</option>
+            <option value="co2_asc" style={{ background: '#0e221b' }}>📉 Menor Huella CO₂</option>
+            <option value="name_asc" style={{ background: '#0e221b' }}>🔤 Nombre (A - Z)</option>
+          </select>
+        </div>
       </div>
 
       {/* Grid */}
@@ -223,7 +297,7 @@ export default function CatalogPage({
           <RefreshCw size={28} className="animate-spin" style={{ margin: '0 auto 0.75rem', color: 'var(--primary-light)' }} />
           <div>Cargando productos sustentables...</div>
         </div>
-      ) : products.length === 0 ? (
+      ) : sortedProducts.length === 0 ? (
         <div className="glass-panel" style={{ textAlign: 'center', padding: '3.5rem 1rem' }}>
           <Leaf size={42} style={{ color: 'var(--text-muted)', opacity: 0.4, marginBottom: '0.8rem' }} />
           <h3>No se encontraron productos con estos filtros</h3>
@@ -237,7 +311,7 @@ export default function CatalogPage({
           gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
           gap: '1.5rem'
         }}>
-          {products.map((product) => (
+          {sortedProducts.map((product) => (
             <ProductCard
               key={product.id}
               product={product}
