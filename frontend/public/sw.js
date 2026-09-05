@@ -1,10 +1,13 @@
 // Service Worker para LiquiVerde PWA
-const CACHE_NAME = 'liquiverde-v1';
+const CACHE_NAME = 'liquiverde-v2';
 const PRECACHE_RESOURCES = [
   '/',
   '/index.html',
   '/manifest.json',
-  '/favicon.svg'
+  '/favicon.svg',
+  '/icon-192.png',
+  '/icon-512.png',
+  '/apple-touch-icon.png'
 ];
 
 self.addEventListener('install', (event) => {
@@ -32,10 +35,11 @@ self.addEventListener('activate', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
-  // Ignorar peticiones no-GET o hacia la API / docs
   if (event.request.method !== 'GET') return;
 
   const url = new URL(event.request.url);
+
+  // Excluir endpoints de backend para llamadas en vivo
   if (
     url.pathname.startsWith('/api') ||
     url.pathname.startsWith('/docs') ||
@@ -44,11 +48,23 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Estrategia Network First con fallback a Cache para HTML y Cache First para assets estáticos
+  // Si es navegación de página (SPA), usar Network First con fallback a /index.html en caché
+  if (event.request.mode === 'navigate') {
+    event.respondWith(
+      fetch(event.request)
+        .catch(() => {
+          return caches.match('/index.html').then((response) => {
+            return response || caches.match('/');
+          });
+        })
+    );
+    return;
+  }
+
+  // Para assets estáticos (CSS, JS, imágenes, fonts), Cache First con actualización en segundo plano
   event.respondWith(
     caches.match(event.request).then((cachedResponse) => {
       if (cachedResponse) {
-        // En segundo plano revalidar asset estático
         fetch(event.request)
           .then((networkResponse) => {
             if (networkResponse && networkResponse.status === 200) {
@@ -61,22 +77,15 @@ self.addEventListener('fetch', (event) => {
         return cachedResponse;
       }
 
-      return fetch(event.request)
-        .then((networkResponse) => {
-          if (networkResponse && networkResponse.status === 200) {
-            const responseClone = networkResponse.clone();
-            caches.open(CACHE_NAME).then((cache) => {
-              cache.put(event.request, responseClone);
-            });
-          }
-          return networkResponse;
-        })
-        .catch(() => {
-          // Si el usuario navega sin conexión, devolver la raíz de la SPA
-          if (event.request.mode === 'navigate') {
-            return caches.match('/');
-          }
-        });
+      return fetch(event.request).then((networkResponse) => {
+        if (networkResponse && networkResponse.status === 200) {
+          const responseClone = networkResponse.clone();
+          caches.open(CACHE_NAME).then((cache) => {
+            cache.put(event.request, responseClone);
+          });
+        }
+        return networkResponse;
+      });
     })
   );
 });

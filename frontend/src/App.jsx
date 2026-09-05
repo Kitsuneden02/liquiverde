@@ -9,14 +9,14 @@ import OptimizerPage from './pages/OptimizerPage';
 import ComparatorPage from './pages/ComparatorPage';
 import DashboardPage from './pages/DashboardPage';
 import StoreMapPage from './pages/StoreMapPage';
-import { Leaf, ExternalLink } from 'lucide-react';
+import { Leaf, ExternalLink, WifiOff } from 'lucide-react';
 import { API_DOCS_URL, fetchProducts } from './services/api';
 
 const VALID_TABS = ['catalog', 'optimizer', 'comparator', 'dashboard', 'map', 'stores'];
 
 function getTabFromHash() {
   if (typeof window === 'undefined') return 'catalog';
-  const raw = window.location.hash.replace('#', '').toLowerCase();
+  const raw = window.location.hash.replace('#', '').trim();
   if (raw === 'stores') return 'map';
   return VALID_TABS.includes(raw) ? raw : 'catalog';
 }
@@ -29,6 +29,21 @@ export default function App() {
   const [detailProduct, setDetailProduct] = useState(null);
   const [optimizerConfig, setOptimizerConfig] = useState(null);
   const [scannedProductDiff, setScannedProductDiff] = useState(null);
+  const [isOnline, setIsOnline] = useState(typeof navigator !== 'undefined' ? navigator.onLine : true);
+
+  // Monitor network online/offline status for PWA experience
+  useEffect(() => {
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
 
   const handleTabChange = useCallback((tab) => {
     const target = tab === 'stores' ? 'map' : tab;
@@ -198,6 +213,27 @@ export default function App() {
 
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+      {/* Offline Status Warning for PWA */}
+      {!isOnline && (
+        <div style={{
+          background: 'linear-gradient(90deg, #b91c1c 0%, #dc2626 100%)',
+          color: '#ffffff',
+          textAlign: 'center',
+          padding: '0.45rem 1rem',
+          fontSize: '0.82rem',
+          fontWeight: 600,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: '0.5rem',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
+          zIndex: 10001
+        }}>
+          <WifiOff size={15} />
+          <span>Modo sin conexión: visualizando versión local y datos en caché</span>
+        </div>
+      )}
+
       {/* Top Sticky Navigation */}
       <Navbar
         activeTab={activeTab}

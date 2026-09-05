@@ -8,12 +8,54 @@ import {
   MapPin,
   ScanBarcode,
   Menu,
-  X
+  X,
+  Download
 } from 'lucide-react';
 
 export default function Navbar({ activeTab, setActiveTab, onOpenScanner }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [deferredPrompt, setDeferredPrompt] = useState(null);
+  const [isInstalled, setIsInstalled] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    return Boolean(
+      window.matchMedia('(display-mode: standalone)').matches ||
+      window.navigator.standalone
+    );
+  });
   const mobileMenuRef = useRef(null);
+
+  // Monitor PWA installation availability
+  useEffect(() => {
+    const handleBeforeInstallPrompt = (e) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+    };
+
+    const handleAppInstalled = () => {
+      setIsInstalled(true);
+      setDeferredPrompt(null);
+    };
+
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    window.addEventListener('appinstalled', handleAppInstalled);
+
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+      window.removeEventListener('appinstalled', handleAppInstalled);
+    };
+  }, []);
+
+  const canInstall = !isInstalled && Boolean(deferredPrompt);
+
+  const handleInstallClick = async () => {
+    if (!deferredPrompt) return;
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    if (outcome === 'accepted') {
+      setIsInstalled(true);
+    }
+    setDeferredPrompt(null);
+  };
 
   const navItems = [
     { id: 'catalog', label: 'Catálogo', shortLabel: 'Catálogo', icon: ShoppingBag },
@@ -145,6 +187,31 @@ export default function Navbar({ activeTab, setActiveTab, onOpenScanner }) {
             })}
           </nav>
 
+          {/* PWA Install Button (Shows when browser install prompt is available or to trigger install) */}
+          {canInstall && (
+            <button
+              onClick={handleInstallClick}
+              className="btn-secondary"
+              style={{
+                height: '38px',
+                padding: '0 0.85rem',
+                fontSize: '0.82rem',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.4rem',
+                borderColor: 'var(--primary-light)',
+                color: 'var(--primary-light)',
+                background: 'rgba(16, 185, 129, 0.1)',
+                cursor: 'pointer'
+              }}
+              title="Instalar LiquiVerde como aplicación PWA"
+            >
+              <Download size={16} />
+              <span className="nav-label-full">Instalar App</span>
+              <span className="nav-label-short">Instalar</span>
+            </button>
+          )}
+
           {/* Quick Scan Action Button */}
           <button
             onClick={onOpenScanner}
@@ -158,6 +225,27 @@ export default function Navbar({ activeTab, setActiveTab, onOpenScanner }) {
 
         {/* Mobile Action Controls (< 880px) */}
         <div className="nav-mobile-toggle">
+          {canInstall && (
+            <button
+              onClick={handleInstallClick}
+              className="btn-secondary"
+              style={{
+                height: '38px',
+                padding: '0 0.65rem',
+                fontSize: '0.78rem',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.3rem',
+                borderColor: 'var(--primary-light)',
+                color: 'var(--primary-light)',
+                background: 'rgba(16, 185, 129, 0.1)'
+              }}
+              title="Instalar App"
+            >
+              <Download size={15} />
+              <span>Instalar</span>
+            </button>
+          )}
           <button
             onClick={onOpenScanner}
             className="btn-primary"
@@ -245,6 +333,31 @@ export default function Navbar({ activeTab, setActiveTab, onOpenScanner }) {
               );
             })}
 
+            {canInstall && (
+              <button
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  handleInstallClick();
+                }}
+                className="btn-secondary"
+                style={{
+                  height: '46px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '0.6rem',
+                  fontSize: '0.95rem',
+                  borderColor: 'var(--primary-light)',
+                  color: 'var(--primary-light)',
+                  background: 'rgba(16, 185, 129, 0.1)',
+                  marginTop: '0.3rem'
+                }}
+              >
+                <Download size={19} />
+                <span>Instalar LiquiVerde en dispositivo</span>
+              </button>
+            )}
+
             <button
               onClick={() => {
                 setMobileMenuOpen(false);
@@ -253,7 +366,7 @@ export default function Navbar({ activeTab, setActiveTab, onOpenScanner }) {
               className="btn-primary"
               style={{
                 height: '46px',
-                marginTop: '0.6rem',
+                marginTop: '0.4rem',
                 justifyContent: 'center',
                 fontSize: '0.95rem'
               }}
