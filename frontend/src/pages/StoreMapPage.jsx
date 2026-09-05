@@ -30,7 +30,7 @@ const STORE_CATEGORIES = [
   { id: 'mercados', label: 'Vegas y Mercados' },
   { id: 'ferias', label: 'Ferias Agroecológicas' },
   { id: 'granel', label: 'Tiendas a Granel' },
-  { id: 'circular_vegan', label: 'Economía Circular y Vegano' }
+  { id: 'circular_vegan', label: 'Emporios Veganos y Sustentables' }
 ];
 
 const STORE_TYPE_LABELS = {
@@ -119,7 +119,7 @@ export default function StoreMapPage() {
           Mapa de Tiendas Sostenibles y Rutas
         </h1>
         <p style={{ color: 'var(--text-muted)', maxWidth: '680px', margin: '0 auto', fontSize: '0.95rem' }}>
-          Encuentra mercados populares, ferias agroecológicas, dispensadores circulares Algramo y almacenes a granel en Santiago para abastecer tu canasta reduciendo emisiones de transporte y residuos plásticos.
+          Encuentra mercados populares, ferias agroecológicas, emporios veganos y almacenes a granel en Santiago para abastecer tu canasta reduciendo emisiones de transporte y residuos plásticos.
         </p>
       </div>
 

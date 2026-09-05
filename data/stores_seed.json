@@ -4,8 +4,8 @@
     "name": "Cooperativa La Vega Central - Frutas, Verduras y Granel",
     "store_type": "mercado_popular",
     "address": "Antonia López de Bello 743, Recoleta, Santiago",
-    "latitude": -33.4317662,
-    "longitude": -70.6417853,
+    "latitude": -33.42998789160445,
+    "longitude": -70.65008878685273,
     "rating_eco": 4.7,
     "discount_green": 15.0,
     "description": "Emblemático mercado de abastos de Santiago. Frutas frescas, verduras de estación, legumbres y frutos secos directo de productores agrícolas sin intermediarios a precios justos."
@@ -15,8 +15,8 @@
     "name": "Mercado Tirso de Molina - Abastos y Productos Campesinos",
     "store_type": "mercado_popular",
     "address": "Av. Santa María 409, Recoleta, Santiago",
-    "latitude": -33.4332839,
-    "longitude": -70.6453678,
+    "latitude": -33.43157592411203,
+    "longitude": -70.65040635875866,
     "rating_eco": 4.6,
     "discount_green": 12.0,
     "description": "Histórico mercado junto a la ribera norte del río Mapocho. Frutas de pequeños agricultores, abarrotes a granel, hierbas medicinales y jugos naturales frescos."
@@ -26,8 +26,8 @@
     "name": "EcoFeria La Reina - Mercado Agroecológico Aldea del Encuentro",
     "store_type": "feria_agroecologica",
     "address": "Av. Alcalde Fernando Castillo Velasco 9750, La Reina, Santiago",
-    "latitude": -33.4546049,
-    "longitude": -70.5163008,
+    "latitude": -33.4385742204221,
+    "longitude": -70.5546175857451,
     "rating_eco": 5.0,
     "discount_green": 10.0,
     "description": "Pionera feria ecológica y orgánica certificada en Chile. Hortalizas libres de agroquímicos, cosmética sustentable, panadería integral y abarrotes de cooperativas campesinas."
@@ -37,8 +37,8 @@
     "name": "Mercado Orgánico Drugstore Providencia",
     "store_type": "mercado_organico",
     "address": "Las Urbinas 2124, Providencia, Santiago",
-    "latitude": -33.422058,
-    "longitude": -70.6121726,
+    "latitude": -33.42214821641411,
+    "longitude": -70.61076643177206,
     "rating_eco": 4.9,
     "discount_green": 10.0,
     "description": "Feria sustentable al aire libre en Providencia. Panadería artesanal de masa madre, quesos de libre pastoreo, miel pura agroecológica y verduras orgánicas de temporada."
@@ -48,8 +48,8 @@
     "name": "Mercado Matadero Franklin - Sector Granel y Especias",
     "store_type": "mercado_popular",
     "address": "San Diego 2234, Santiago Centro, Santiago",
-    "latitude": -33.4750331,
-    "longitude": -70.6480655,
+    "latitude": -33.47324636967029,
+    "longitude": -70.64500090874448,
     "rating_eco": 4.5,
     "discount_green": 15.0,
     "description": "Clásico polo popular de abastecimiento en el sur de la capital. Gran oferta de legumbres nacionales por kilo, frutos secos, encurtidos y especias a granel con precios mayoristas."
@@ -59,33 +59,33 @@
     "name": "Mercado Sustentable Barrio Italia",
     "store_type": "tienda_granel",
     "address": "Av. Italia 1392, Providencia, Santiago",
-    "latitude": -33.4472222,
-    "longitude": -70.6246724,
+    "latitude": -33.447528979397084,
+    "longitude": -70.62491200034235,
     "rating_eco": 4.8,
     "discount_green": 12.0,
     "description": "Emporio ecológico a granel en el corazón patrimonial de Barrio Italia. Especializado en frutos secos, harinas integrales, detergentes biodegradables y cosmética sólida zero waste."
   },
   {
     "id": 7,
-    "name": "Algramo - Estación Circular Central",
-    "store_type": "zero_waste_dispenser",
-    "address": "Coronel Souper 4524, Estación Central, Santiago",
-    "latitude": -33.4587121,
-    "longitude": -70.6969769,
-    "rating_eco": 4.9,
-    "discount_green": 20.0,
-    "description": "Innovadora estación de economía circular con dispensadores inteligentes. Recarga de productos de limpieza y abarrotes en envases reutilizables con chip RFID para eliminar el plástico de un solo uso."
+    "name": "La Vega Italia - Mercado y Alimentos a Granel",
+    "store_type": "tienda_granel",
+    "address": "Manuel Montt 1041, Providencia, Santiago",
+    "latitude": -33.4373731,
+    "longitude": -70.6162551,
+    "rating_eco": 4.8,
+    "discount_green": 10.0,
+    "description": "Mercado local en Providencia con amplia variedad de verduras frescas, abarrotes, legumbres, frutos secos y alimentos a granel a precios convenientes y con menor huella de embalaje."
   },
   {
     "id": 8,
-    "name": "Emporio Poblet - Abarrotes y Alimentos a Granel",
-    "store_type": "tienda_granel",
-    "address": "Av. Manuel Montt 1046, Providencia, Santiago",
-    "latitude": -33.43735,
-    "longitude": -70.6158091,
+    "name": "Mercado Campesino INDAP - Isidora Goyenechea",
+    "store_type": "feria_agroecologica",
+    "address": "Isidora Goyenechea 3051, Las Condes, Santiago",
+    "latitude": -33.41434053066479,
+    "longitude": -70.5985257290186,
     "rating_eco": 4.8,
-    "discount_green": 10.0,
-    "description": "Tienda libre de residuos plásticos donde los clientes pueden llevar sus propios frascos o bolsas reutilizables. Granos andinos, tés orgánicos, semillas y frutos secos seleccionados."
+    "discount_green": 12.0,
+    "description": "Espacio coordinado por INDAP donde pequeños agricultores familiares traen directamente su cosecha a Las Condes: mieles nativas, mermeladas sin azúcar añadida, quinoa del secano y verduras limpias."
   },
   {
     "id": 9,
@@ -97,16 +97,5 @@
     "rating_eco": 4.9,
     "discount_green": 10.0,
     "description": "Tienda especializada en productos 100% vegetales, tofu artesanal, leches vegetales sustentables, alternativas éticas a los lácteos y alimentos de agricultura limpia."
-  },
-  {
-    "id": 10,
-    "name": "Mercado Campesino INDAP - Plaza Bellavista",
-    "store_type": "feria_agroecologica",
-    "address": "Constitución 30, Providencia, Santiago",
-    "latitude": -33.4340752,
-    "longitude": -70.634827,
-    "rating_eco": 4.8,
-    "discount_green": 12.0,
-    "description": "Espacio coordinado por INDAP donde pequeños agricultores familiares traen directamente su cosecha: mieles nativas, mermeladas sin azúcar añadida, quinoa del secano y verduras limpias."
   }
 ]
