@@ -1,6 +1,6 @@
-# 🌱 LiquiVerde — Retail Inteligente & Sostenible
+# 🌱 LiquiVerde - Retail Inteligente y Sostenible
 
-> **Desafío Técnico Software Engineer I — Grupo Lagos**  
+> **Desafío Técnico Software Engineer I - Grupo Lagos**  
 > Plataforma full-stack para optimización de compras conscientes, maximización del ahorro económico y reducción medible del impacto ambiental y social.
 
 ---
@@ -291,4 +291,4 @@ Para el desarrollo de este proyecto se utilizaron herramientas de asistencia bas
 
 ---
 
-© 2026 LiquiVerde • Retail Inteligente & Sostenible.
+© 2026 LiquiVerde • Retail Inteligente y Sostenible.
