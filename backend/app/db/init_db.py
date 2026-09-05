@@ -8,7 +8,7 @@ from app.db.models import Product, Store
 
 logger = logging.getLogger("liquiverde.init_db")
 
-def init_db(db: Session = None) -> None:
+def init_db(db: Session = None, reload_stores: bool = False) -> None:
     """Creates database tables and loads initial seed data if tables are empty."""
     Base.metadata.create_all(bind=engine)
     
@@ -55,13 +55,17 @@ def init_db(db: Session = None) -> None:
         else:
             logger.info(f"Products table already contains {product_count} records. Skipping seed.")
 
-        # 2. Seed Stores if empty
+        # 2. Seed Stores (reload if requested or if empty)
         store_count = db.query(Store).count()
-        if store_count == 0 and settings.STORES_SEED_FILE.exists():
+        if (store_count == 0 or reload_stores) and settings.STORES_SEED_FILE.exists():
             logger.info(f"Loading stores seed from {settings.STORES_SEED_FILE}...")
             with open(settings.STORES_SEED_FILE, "r", encoding="utf-8") as f:
                 stores_data = json.load(f)
             
+            if reload_stores:
+                db.query(Store).delete()
+                db.commit()
+
             for item in stores_data:
                 store = Store(
                     id=item.get("id"),
