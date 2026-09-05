@@ -29,9 +29,11 @@
 LiquiVerde transforma la experiencia de compra en retail al combinar optimización matemática de canastas con evaluación de impacto ambiental de ciclo de vida. Permite a los consumidores:
 - **Escanear códigos de barra EAN-13** o buscar productos en tiempo real, integrando el catálogo local con la red global **Open Food Facts**.
 - **Optimizar canastas sujetas a presupuesto** mediante un slider dinámico que equilibra *Ahorro Económico* vs. *Sostenibilidad Ecológica*.
+- **Cargar plantillas predefinidas de canasta** (*Desayuno Familiar*, *Aseo del Hogar*, *Canasta Básica Nutritiva*, *Pack Plant-Based*) para evaluar canastas cotidianas en un clic.
 - **Recibir recomendaciones automáticas de sustitución** de productos de alto impacto (por ejemplo, reemplazar hamburguesas industriales en bandeja plástica por lentejas locales a granel con menor huella de $CO_2$ y menor costo).
 - **Visualizar su impacto acumulado** en un dashboard (árboles equivalentes, agua virtual ahorrada, dinero ahorrado).
 - **Ubicar tiendas locales y puntos de recarga circular** (cooperativas agroecológicas, tiendas a granel y centros de reciclaje) en un mapa interactivo con enlace directo de navegación a Google Maps.
+- **Experiencia PWA (Progressive Web App):** Instalable como aplicación de escritorio o móvil con visualización *standalone*, prompts de instalación, navegación offline para assets estáticos y Service Worker v2.
 
 ---
 
@@ -40,7 +42,8 @@ LiquiVerde transforma la experiencia de compra en retail al combinar optimizaci�
 | Capa | Tecnología | Justificación Técnica |
 | :--- | :--- | :--- |
 | **Backend API** | **Python 3.11+ / FastAPI** | Alto rendimiento asíncrono, validación estricta con **Pydantic v2** y `pydantic-settings`, documentación interactiva **Swagger UI** y soporte nativo para algoritmos matemáticos. |
-| **Frontend** | **React + Vite** | Interfaz reactiva con renderizado dinámico de sliders, sincronización por hash (`location.hash`), integración nativa con **Leaflet** y sistema de diseño visual con microinteracciones y accesibilidad de teclado. |
+| **Frontend Web** | **React + Vite** | Interfaz reactiva con renderizado dinámico de sliders, sincronización por hash (`location.hash`), integración nativa con **Leaflet** y sistema de diseño visual con microinteracciones y accesibilidad de teclado. |
+| **PWA & Offline** | **Web App Manifest + Service Worker** | Instalación nativa multiplataforma (desktop/móvil), iconos adaptativos, estrategia de caché inteligente para navegación offline y banner en tiempo real ante cortes de red. |
 | **Base de Datos** | **SQLite + SQLAlchemy 2.0** | Cero fricción de despliegue, persistencia en volumen Docker (`/app/db`), integridad referencial y desacoplamiento para migrar a PostgreSQL modificando `DATABASE_URL`. |
 | **Contenedores** | **Docker & Docker Compose** | Construcción multi-etapa optimizada (Node + Nginx para frontend, Python-slim para backend con healthcheck) lista para levantar en un solo comando. |
 | **Pruebas y Linter** | **Pytest & Oxlint** | Suite de 44 tests unitarios y de integración con 100% de éxito, y linter frontend con 0 advertencias. |
