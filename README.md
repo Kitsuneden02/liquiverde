@@ -291,4 +291,4 @@ Para el desarrollo de este proyecto se utilizaron herramientas de asistencia bas
 
 ---
 
-© 2026 LiquiVerde • Retail Inteligente y Sostenible.
+© 2026 LiquiVerde • Retail Inteligente y Sostenible. Distribuido bajo la Licencia MIT.
