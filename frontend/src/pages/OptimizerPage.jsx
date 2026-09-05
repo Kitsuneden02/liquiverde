@@ -300,7 +300,7 @@ export default function OptimizerPage({
       setOptimizationResult(result);
       setAppliedAll(false);
     } catch (err) {
-      setError(err.message || 'Error al ejecutar la optimización de mochila');
+      setError(err.message || 'Error al calcular la optimización de la canasta');
     } finally {
       setLoading(false);
     }
@@ -349,7 +349,7 @@ export default function OptimizerPage({
           marginBottom: '0.8rem',
           border: '1px solid rgba(16, 185, 129, 0.25)'
         }}>
-          <Sliders size={14} /> Algoritmo de Mochila Multi-Objetivo (0/1 Knapsack)
+          <Sliders size={14} /> Optimización Inteligente de Canasta
         </div>
         <h1 style={{ fontSize: '2.4rem', marginBottom: '0.5rem' }}>
           Optimizador Inteligente de Compras
