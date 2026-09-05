@@ -1,20 +1,16 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import {
   RefreshCw,
-  ArrowRight,
   Check,
-  AlertCircle,
   Sparkles,
   Leaf,
   DollarSign,
   Droplets,
-  ShieldCheck,
   Search,
   ChevronDown,
-  X,
-  SlidersHorizontal,
-  Flame
+  X
 } from 'lucide-react';
+
 import { fetchProducts, fetchSubstitutes } from '../services/api';
 import { formatCategoryName } from '../utils/formatters';
 
@@ -111,33 +107,54 @@ export default function ComparatorPage({
   const [isPickerOpen, setIsPickerOpen] = useState(false);
   const selectorRef = useRef(null);
 
-  useEffect(() => {
-    fetchProducts().then((data) => {
-      setAllProducts(data);
-      if (!selectedProduct && data.length > 0) {
-        if (initialProduct) {
-          setSelectedProduct(initialProduct);
-        } else {
-          // Selecciona por defecto un producto convencional con alto CO2 para demostrar la sustitución
-          const defaultOrig =
-            data.find((p) => p.co2_kg >= 2.0 && p.substitute_id) || data[0];
-          setSelectedProduct(defaultOrig);
-        }
-      }
-    });
+  const loadSubstitutes = useCallback(async (productId) => {
+    if (!productId) return;
+    setLoading(true);
+    setError(null);
+    try {
+      const data = await fetchSubstitutes(productId);
+      setSubstitutes(data);
+    } catch (err) {
+      console.error('Error al cargar recomendaciones de sustitución:', err);
+      setError('Error al cargar recomendaciones de sustitución.');
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
   useEffect(() => {
+    let isMounted = true;
+    fetchProducts().then((data) => {
+      if (!isMounted) return;
+      setAllProducts(data);
+      if (!selectedProduct && data.length > 0) {
+        const defaultOrig =
+          initialProduct || data.find((p) => p.co2_kg >= 2.0 && p.substitute_id) || data[0];
+        setSelectedProduct(defaultOrig);
+      }
+    });
+    return () => {
+      isMounted = false;
+    };
+  }, [initialProduct, selectedProduct]);
+
+  useEffect(() => {
     if (initialProduct) {
-      setSelectedProduct(initialProduct);
+      const timer = setTimeout(() => {
+        setSelectedProduct(initialProduct);
+      }, 0);
+      return () => clearTimeout(timer);
     }
   }, [initialProduct]);
 
   useEffect(() => {
-    if (selectedProduct) {
+    if (!selectedProduct?.id) return;
+    const timer = setTimeout(() => {
       loadSubstitutes(selectedProduct.id);
-    }
-  }, [selectedProduct]);
+    }, 0);
+    return () => clearTimeout(timer);
+  }, [selectedProduct?.id, loadSubstitutes]);
+
 
   // Close dropdown on click outside
   useEffect(() => {
@@ -152,18 +169,6 @@ export default function ComparatorPage({
     };
   }, []);
 
-  const loadSubstitutes = async (productId) => {
-    setLoading(true);
-    setError(null);
-    try {
-      const data = await fetchSubstitutes(productId);
-      setSubstitutes(data);
-    } catch (err) {
-      setError('Error al cargar recomendaciones de sustitución.');
-    } finally {
-      setLoading(false);
-    }
-  };
 
   // Categories list computed dynamically
   const categories = useMemo(() => {
@@ -285,7 +290,17 @@ export default function ComparatorPage({
         {/* Selected Product Hero Strip (When selector is closed) */}
         {selectedProduct && (
           <div
+            role="button"
+            tabIndex={0}
+            aria-expanded={isPickerOpen}
+            aria-label="Seleccionar o cambiar producto para analizar"
             onClick={() => setIsPickerOpen(!isPickerOpen)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                setIsPickerOpen(!isPickerOpen);
+              }
+            }}
             style={{
               display: 'flex',
               alignItems: 'center',
@@ -537,9 +552,19 @@ export default function ComparatorPage({
                   return (
                     <div
                       key={p.id}
+                      role="button"
+                      tabIndex={0}
+                      aria-label={`Seleccionar ${p.name}`}
                       onClick={() => {
                         setSelectedProduct(p);
                         setIsPickerOpen(false);
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          setSelectedProduct(p);
+                          setIsPickerOpen(false);
+                        }
                       }}
                       style={{
                         display: 'flex',
@@ -789,7 +814,16 @@ export default function ComparatorPage({
 
             {/* Product Image Container */}
             <div
+              role={onOpenDetails ? 'button' : undefined}
+              tabIndex={onOpenDetails ? 0 : undefined}
+              aria-label={onOpenDetails ? `Ver detalles de ${selectedProduct.name}` : undefined}
               onClick={() => onOpenDetails && onOpenDetails(selectedProduct)}
+              onKeyDown={(e) => {
+                if (onOpenDetails && (e.key === 'Enter' || e.key === ' ')) {
+                  e.preventDefault();
+                  onOpenDetails(selectedProduct);
+                }
+              }}
               style={{
                 height: '210px',
                 display: 'flex',
@@ -828,7 +862,15 @@ export default function ComparatorPage({
                 {selectedProduct.brand || 'Marca Convencional'}
               </div>
               <h3
+                role={onOpenDetails ? 'button' : undefined}
+                tabIndex={onOpenDetails ? 0 : undefined}
                 onClick={() => onOpenDetails && onOpenDetails(selectedProduct)}
+                onKeyDown={(e) => {
+                  if (onOpenDetails && (e.key === 'Enter' || e.key === ' ')) {
+                    e.preventDefault();
+                    onOpenDetails(selectedProduct);
+                  }
+                }}
                 style={{
                   fontSize: '1.25rem',
                   lineHeight: 1.3,
@@ -998,7 +1040,22 @@ export default function ComparatorPage({
                 />
                 <div>Buscando alternativas ecológicas óptimas...</div>
               </div>
+            ) : error ? (
+              <div
+                className="glass-panel"
+                style={{ padding: '2.5rem 2rem', textAlign: 'center' }}
+              >
+                <p style={{ color: 'var(--error, #ef4444)', marginBottom: '1rem' }}>{error}</p>
+                <button
+                  className="btn btn-primary"
+                  onClick={() => loadSubstitutes(selectedProduct?.id)}
+                  style={{ margin: '0 auto' }}
+                >
+                  <RefreshCw size={15} /> Reintentar
+                </button>
+              </div>
             ) : substitutes.length === 0 ? (
+
               <div
                 className="glass-panel"
                 style={{ padding: '2.5rem 2rem', textAlign: 'center' }}
@@ -1081,7 +1138,16 @@ export default function ComparatorPage({
                       >
                         {/* Thumbnail Image */}
                         <div
+                          role={onOpenDetails ? 'button' : undefined}
+                          tabIndex={onOpenDetails ? 0 : undefined}
+                          aria-label={onOpenDetails ? `Ver detalles de ${alt.name}` : undefined}
                           onClick={() => onOpenDetails && onOpenDetails(alt)}
+                          onKeyDown={(e) => {
+                            if (onOpenDetails && (e.key === 'Enter' || e.key === ' ')) {
+                              e.preventDefault();
+                              onOpenDetails(alt);
+                            }
+                          }}
                           style={{
                             cursor: onOpenDetails ? 'pointer' : 'default'
                           }}
@@ -1117,9 +1183,17 @@ export default function ComparatorPage({
                                 {alt.brand}
                               </div>
                               <h4
+                                role={onOpenDetails ? 'button' : undefined}
+                                tabIndex={onOpenDetails ? 0 : undefined}
                                 onClick={() =>
                                   onOpenDetails && onOpenDetails(alt)
                                 }
+                                onKeyDown={(e) => {
+                                  if (onOpenDetails && (e.key === 'Enter' || e.key === ' ')) {
+                                    e.preventDefault();
+                                    onOpenDetails(alt);
+                                  }
+                                }}
                                 style={{
                                   fontSize: '1.15rem',
                                   marginTop: '0.15rem',

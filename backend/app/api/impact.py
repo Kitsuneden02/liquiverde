@@ -28,24 +28,30 @@ def get_impact_summary(db: Session = Depends(get_db)):
     total_products = len(products)
     avg_score = sum(p.sustainability_score for p in products) / total_products
 
-    # Comparación de productos tradicionales vs sus sustitutos recomendados
+    # Comparación de productos tradicionales vs sus sustitutos recomendados (consulta optimizada por lote)
     co2_saved_total = 0.0
     savings_clp_total = 0.0
     water_saved_total = 0.0
     substitutions_available = 0
 
-    for p in products:
-        if p.substitute_id:
-            sub = db.query(Product).filter(Product.id == p.substitute_id).first()
-            if sub:
-                co2_delta = max(0.0, p.co2_kg - sub.co2_kg)
-                price_delta = max(0.0, p.price - sub.price)
-                water_delta = max(0.0, p.water_liters - sub.water_liters)
+    sub_ids = [p.substitute_id for p in products if p.substitute_id]
+    subs_map = {}
+    if sub_ids:
+        subs = db.query(Product).filter(Product.id.in_(sub_ids)).all()
+        subs_map = {s.id: s for s in subs}
 
-                co2_saved_total += co2_delta
-                savings_clp_total += price_delta
-                water_saved_total += water_delta
-                substitutions_available += 1
+    for p in products:
+        if p.substitute_id and p.substitute_id in subs_map:
+            sub = subs_map[p.substitute_id]
+            co2_delta = max(0.0, float(p.co2_kg) - float(sub.co2_kg))
+            price_delta = max(0.0, float(p.price) - float(sub.price))
+            water_delta = max(0.0, float(p.water_liters) - float(sub.water_liters))
+
+            co2_saved_total += co2_delta
+            savings_clp_total += price_delta
+            water_saved_total += water_delta
+            substitutions_available += 1
+
 
     # Conversión científica estándar: 1 árbol maduro absorbe ~22 kg de CO2 al año
     trees_equivalent = round(co2_saved_total / 22.0, 2) if co2_saved_total > 0 else 0.0

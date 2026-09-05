@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Leaf, Droplets, RefreshCw, Plus, Check, ShieldCheck, Sparkles, Coffee, Utensils, Apple, Sparkle, HeartPulse, ShoppingBag } from 'lucide-react';
+import { Leaf, Droplets, RefreshCw, Plus, Check, ShieldCheck, Sparkles, Coffee, Utensils, Apple, HeartPulse, ShoppingBag } from 'lucide-react';
 
 const CATEGORY_ICONS = {
   lacteos_y_vegetales: { icon: Leaf, label: 'Lácteo / Vegetal', color: '#34d399', bg: 'rgba(16, 185, 129, 0.12)' },
@@ -8,7 +8,9 @@ const CATEGORY_ICONS = {
   limpieza_y_hogar: { icon: Sparkles, label: 'Limpieza Circular', color: '#38bdf8', bg: 'rgba(56, 189, 248, 0.12)' },
   frutas_y_verduras: { icon: Apple, label: 'Agroecológico', color: '#10b981', bg: 'rgba(16, 185, 129, 0.15)' },
   bebidas: { icon: Coffee, label: 'Bebida e Infusión', color: '#60a5fa', bg: 'rgba(96, 165, 250, 0.12)' },
-  desayuno_y_snacks: { icon: ShoppingBag, label: 'Snack y Desayuno', color: '#f472b6', bg: 'rgba(244, 114, 182, 0.12)' }
+  despensa_y_condimentos: { icon: Utensils, label: 'Despensa y Condimentos', color: '#f97316', bg: 'rgba(249, 115, 22, 0.12)' },
+  panaderia_y_snacks: { icon: ShoppingBag, label: 'Panadería y Snacks', color: '#f472b6', bg: 'rgba(244, 114, 182, 0.12)' },
+  desayuno_y_snacks: { icon: ShoppingBag, label: 'Panadería y Snacks', color: '#f472b6', bg: 'rgba(244, 114, 182, 0.12)' }
 };
 
 export default function ProductCard({
@@ -68,7 +70,16 @@ export default function ProductCard({
 
       {/* Product Image and Stylized Fallback */}
       <div
+        role={onOpenDetails ? 'button' : undefined}
+        tabIndex={onOpenDetails ? 0 : undefined}
         onClick={() => onOpenDetails && onOpenDetails(product)}
+        onKeyDown={(e) => {
+          if (onOpenDetails && (e.key === 'Enter' || e.key === ' ')) {
+            e.preventDefault();
+            onOpenDetails(product);
+          }
+        }}
+        aria-label={onOpenDetails ? `Ver detalles de ${product.name}` : undefined}
         title={`Ver detalles de ${product.name}`}
         style={{
           height: '160px',
@@ -129,15 +140,23 @@ export default function ProductCard({
           {product.brand || 'Marca Local'}
         </div>
         <h4
+          role={onOpenDetails ? 'button' : undefined}
+          tabIndex={onOpenDetails ? 0 : undefined}
           onClick={() => onOpenDetails && onOpenDetails(product)}
+          onKeyDown={(e) => {
+            if (onOpenDetails && (e.key === 'Enter' || e.key === ' ')) {
+              e.preventDefault();
+              onOpenDetails(product);
+            }
+          }}
           style={{
             fontSize: '1rem',
             lineHeight: 1.3,
             marginTop: '0.15rem',
-            cursor: 'pointer',
+            cursor: onOpenDetails ? 'pointer' : 'default',
             transition: 'color 0.15s'
           }}
-          onMouseOver={(e) => { e.currentTarget.style.color = 'var(--primary-light)'; }}
+          onMouseOver={(e) => { if (onOpenDetails) e.currentTarget.style.color = 'var(--primary-light)'; }}
           onMouseOut={(e) => { e.currentTarget.style.color = '#ffffff'; }}
         >
           {product.name}
@@ -145,6 +164,20 @@ export default function ProductCard({
         <div style={{ fontSize: '0.75rem', color: 'var(--text-sub)', marginTop: '0.2rem' }}>
           Empaque: {product.packaging_type || 'Estándar'}
         </div>
+        {(product.is_external || product.data_quality === 'estimated') && (
+          <div style={{
+            fontSize: '0.68rem',
+            color: '#fbbf24',
+            background: 'rgba(245, 158, 11, 0.12)',
+            border: '1px solid rgba(245, 158, 11, 0.25)',
+            padding: '0.15rem 0.4rem',
+            borderRadius: '4px',
+            marginTop: '0.35rem',
+            display: 'inline-block'
+          }}>
+            ⚠️ Precio y métricas estimadas
+          </div>
+        )}
       </div>
 
       {/* Ecological Metrics Bar */}

@@ -22,7 +22,8 @@ const DEMO_BARCODES = [
   { label: '🥛 Leche Entera (Soprole)', code: '7802900001308' },
   { label: '🥩 Carne Molida (Vacuno)', code: '8436569263242' },
   { label: '🧴 FreeMet Lavaloza Eco', code: '7804675001019' },
-  { label: '🍫 Nutella (Open Food Facts)', code: '3017620422003' },
+  { label: '🍫 Nutella Avellanas', code: '3017620422003' },
+  { label: '🥤 Coca-Cola Zero (Open Food Facts)', code: '5449000000996' },
   { label: '🌱 Lentejas a Granel (Eco)', code: '8420020045133' },
   { label: '🍝 Spaghetti N°5 (Carozzi)', code: '7802575004437' },
 ];
@@ -122,15 +123,23 @@ export default function BarcodeScannerModal({
     onClose();
   };
 
-  // Auto-stop camera if modal closes or unmounts
+  // Clean up camera resources on unmount
   useEffect(() => {
-    if (!isOpen) {
-      stopCamera();
-    }
     return () => {
-      stopCamera();
+      if (scannerRef.current) {
+        try {
+          if (scannerRef.current.isScanning) {
+            scannerRef.current.stop();
+          }
+          scannerRef.current.clear();
+        } catch {
+          // ignore on unmount
+        }
+        scannerRef.current = null;
+      }
     };
-  }, [isOpen]);
+  }, []);
+
 
   if (!isOpen) return null;
 
@@ -524,10 +533,23 @@ export default function BarcodeScannerModal({
                     <span style={{ fontSize: '0.72rem', textTransform: 'uppercase', color: 'var(--text-muted)', letterSpacing: '0.05em' }}>
                       {scannedProduct.brand || 'Marca General'} • {formatCategoryName(scannedProduct.category)}
                     </span>
-                    <h3 style={{ fontSize: '1.05rem', marginTop: '0.15rem', lineHeight: 1.3 }}>{scannedProduct.name}</h3>
                     <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
                       EAN: {scannedProduct.barcode}
                     </span>
+                    {(scannedProduct.is_external || scannedProduct.data_quality === 'estimated') && (
+                      <div style={{
+                        marginTop: '0.25rem',
+                        fontSize: '0.68rem',
+                        color: '#fbbf24',
+                        background: 'rgba(245, 158, 11, 0.15)',
+                        border: '1px solid rgba(245, 158, 11, 0.3)',
+                        padding: '0.1rem 0.4rem',
+                        borderRadius: '4px',
+                        display: 'inline-block'
+                      }}>
+                        ⚠️ Precio y métricas estimadas (Open Food Facts)
+                      </div>
+                    )}
                   </div>
                   <div style={{ textAlign: 'right', flexShrink: 0 }}>
                     <span className={`badge-eco badge-eco-${(scannedProduct.eco_score || 'c').toLowerCase()}`}>

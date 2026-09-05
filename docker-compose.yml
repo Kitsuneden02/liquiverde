@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   backend:
     build:
@@ -11,10 +9,17 @@ services:
       - "8000:8000"
     environment:
       - PYTHONPATH=/app
-      - DATABASE_URL=sqlite:////app/liquiverde.db
+      - DATABASE_URL=sqlite:////app/db/liquiverde.db
+      - DATA_DIR=/app/data
     volumes:
       - ./data:/app/data
-      - backend_data:/app
+      - backend_db:/app/db
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
 
   frontend:
     build:
@@ -24,9 +29,16 @@ services:
     restart: unless-stopped
     ports:
       - "5173:80"
-      - "80:80"
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:80/"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 3s
 
 volumes:
-  backend_data:
+  backend_db:
+

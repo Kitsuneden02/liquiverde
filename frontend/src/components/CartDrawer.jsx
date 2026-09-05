@@ -7,15 +7,12 @@ import {
   Minus,
   Sliders,
   Leaf,
-  Droplets,
   Sparkles,
   ArrowRight,
-  TrendingDown,
-  AlertCircle,
   RefreshCw,
   ShoppingBag
 } from 'lucide-react';
-import { formatCategoryName } from '../utils/formatters';
+
 
 function CartItemRow({ item, onUpdateQuantity, onRemoveItem, onSelectForCompare, onClose }) {
   const { product, quantity } = item;

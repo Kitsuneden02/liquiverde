@@ -1,18 +1,20 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { MapPin, Navigation, Star, Tag, RefreshCw, Compass, Search, Filter, Store as StoreIcon, Leaf, Sparkles, ExternalLink } from 'lucide-react';
+import { MapPin, Navigation, Star, Tag, RefreshCw, Search, Store as StoreIcon, Leaf, ExternalLink } from 'lucide-react';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import { fetchStores } from '../services/api';
 
-// Configurar ícono personalizado de Leaflet para evitar problemas de asset bundle
+
+// Configurar ícono personalizado de Leaflet servido localmente sin depender de CDNs externos
 const ecoIcon = new L.Icon({
-  iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png',
-  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+  iconUrl: '/images/marker-icon-green.png',
+  shadowUrl: '/images/marker-shadow.png',
   iconSize: [25, 41],
   iconAnchor: [12, 41],
   popupAnchor: [1, -34],
   shadowSize: [41, 41]
 });
+
 
 // Controlador auxiliar para animar el paneo del mapa y sincronizar popups sin bloqueos
 function MapController({ selectionTrigger, zoom = 14, markerRefs }) {
@@ -114,15 +116,20 @@ export default function StoreMapPage() {
     });
   }, [stores, selectedCategory, searchQuery]);
 
+  const triggerCounterRef = useRef(0);
+
   const handleSelectFromMenu = (store) => {
     setSelectedStore(store);
-    setSelectionTrigger({ store, source: 'menu', timestamp: Date.now() });
+    triggerCounterRef.current += 1;
+    setSelectionTrigger({ store, source: 'menu', sequenceId: triggerCounterRef.current });
   };
 
   const handleSelectFromMap = (store) => {
     setSelectedStore(store);
-    setSelectionTrigger({ store, source: 'map', timestamp: Date.now() });
+    triggerCounterRef.current += 1;
+    setSelectionTrigger({ store, source: 'map', sequenceId: triggerCounterRef.current });
   };
+
 
   return (
     <div className="container" style={{ padding: '2rem 1.5rem 4rem' }}>
@@ -262,7 +269,16 @@ export default function StoreMapPage() {
                   <div
                     key={store.id}
                     className="glass-panel"
+                    role="button"
+                    tabIndex={0}
+                    aria-label={`Seleccionar tienda ${store.name}`}
                     onClick={() => handleSelectFromMenu(store)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        handleSelectFromMenu(store);
+                      }
+                    }}
                     style={{
                       padding: '1.1rem',
                       cursor: 'pointer',

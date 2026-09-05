@@ -2,10 +2,18 @@ from typing import List, Optional
 from pydantic import BaseModel, Field
 from app.schemas.product import ProductOut
 
+class BasketItemRequest(BaseModel):
+    product_id: int
+    quantity: int = 1
+
 class KnapsackRequest(BaseModel):
     product_ids: Optional[List[int]] = Field(
         default=None, 
         description="Lista de IDs de productos seleccionados o deseados. Si se omite, evalúa todo el catálogo."
+    )
+    items: Optional[List[BasketItemRequest]] = Field(
+        default=None,
+        description="Lista de productos con cantidades específicas (quantity) desde el carrito."
     )
     budget: float = Field(
         gt=0, 

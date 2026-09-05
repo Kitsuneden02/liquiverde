@@ -17,16 +17,7 @@ ECO_SCORE_MAP = {
     "e": 20.0
 }
 
-# Referencias aproximadas de huella CO2 alta por categoría (kg CO2e) para normalización
-CATEGORY_CO2_CEILINGS: Dict[str, float] = {
-    "proteinas_y_legumbres": 20.0,
-    "lacteos_y_vegetales": 3.5,
-    "abarrotes_y_cereales": 4.5,
-    "limpieza_y_hogar": 6.0,
-    "frutas_y_verduras": 2.0,
-    "desayuno_y_snacks": 5.0,
-    "bebidas": 3.0,
-}
+from app.core.categories import CATEGORY_CO2_CEILINGS
 
 def calculate_environmental_subscore(
     co2_kg: float,

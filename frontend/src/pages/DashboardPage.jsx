@@ -1,23 +1,68 @@
-import React, { useState, useEffect } from 'react';
-import { BarChart3, TrendingUp, Leaf, DollarSign, Droplets, TreePine, Award, RefreshCw } from 'lucide-react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { Leaf, DollarSign, Droplets, TreePine, Award, RefreshCw, AlertCircle } from 'lucide-react';
 import { fetchImpactSummary } from '../services/api';
 
 export default function DashboardPage() {
   const [summary, setSummary] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  const loadImpactSummary = useCallback(async () => {
+    setError(null);
+    try {
+      const data = await fetchImpactSummary();
+      setSummary(data);
+    } catch (err) {
+      console.error(err);
+      setError(err.message || 'Error al cargar métricas de impacto ambiental');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
-    fetchImpactSummary()
-      .then((data) => setSummary(data))
-      .catch((err) => console.error(err))
-      .finally(() => setLoading(false));
-  }, []);
+    const timer = setTimeout(() => {
+      loadImpactSummary();
+    }, 0);
+    return () => clearTimeout(timer);
+  }, [loadImpactSummary]);
 
   if (loading) {
     return (
       <div className="container" style={{ padding: '6rem 1.5rem', textAlign: 'center', color: 'var(--text-muted)' }}>
         <RefreshCw size={32} className="animate-spin" style={{ margin: '0 auto 1rem', color: 'var(--primary-light)' }} />
         <div>Cargando métricas de impacto ambiental y económico...</div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="container" style={{ padding: '4rem 1.5rem', textAlign: 'center' }}>
+        <div style={{
+          background: 'rgba(239, 68, 68, 0.12)',
+          border: '1px solid rgba(239, 68, 68, 0.3)',
+          borderRadius: 'var(--radius-sm)',
+          padding: '2rem',
+          maxWidth: '520px',
+          margin: '0 auto',
+          color: '#fca5a5'
+        }}>
+          <AlertCircle size={36} style={{ margin: '0 auto 0.75rem', color: '#f87171' }} />
+          <h3 style={{ fontSize: '1.2rem', marginBottom: '0.5rem', color: '#ffffff' }}>No pudimos cargar las métricas</h3>
+          <p style={{ fontSize: '0.88rem', marginBottom: '1.25rem' }}>{error}</p>
+          <button
+            onClick={() => {
+              setLoading(true);
+              loadImpactSummary();
+            }}
+            className="btn-primary"
+            style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', padding: '0.6rem 1.25rem' }}
+          >
+            <RefreshCw size={16} />
+            <span>Reintentar</span>
+          </button>
+        </div>
       </div>
     );
   }

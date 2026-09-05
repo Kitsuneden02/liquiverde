@@ -24,37 +24,22 @@ class Product(Base):
     eco_score = Column(String(10), default="c")  # a, b, c, d, e
     nutri_score = Column(String(10), default="c")
     sustainability_score = Column(Float, nullable=False, default=50.0)
+    environmental_score = Column(Float, nullable=False, default=50.0)
+    social_score = Column(Float, nullable=False, default=50.0)
+    economic_score = Column(Float, nullable=False, default=50.0)
+    
+    # Clasificación por familia de productos para sustitución y optimizador
+    product_family = Column(String(120), index=True, nullable=True)
+    
+    # Metadata de procedencia y calidad de datos (OFF vs Seed verificado)
+    is_external = Column(Boolean, default=False)
+    data_quality = Column(String(50), default="verified")  # "verified" o "estimated"
     
     # Self-referential substitute product recommendation
     substitute_id = Column(Integer, ForeignKey("products.id"), nullable=True)
     image_url = Column(String(500), nullable=True)
 
     substitute = relationship("Product", remote_side=[id], lazy="joined")
-
-    def to_dict(self):
-        return {
-            "id": self.id,
-            "barcode": self.barcode,
-            "name": self.name,
-            "brand": self.brand,
-            "category": self.category,
-            "description": self.description,
-            "price": self.price,
-            "unit": self.unit,
-            "co2_kg": self.co2_kg,
-            "water_liters": self.water_liters,
-            "packaging_type": self.packaging_type,
-            "packaging_score": self.packaging_score,
-            "origin": self.origin,
-            "origin_score": self.origin_score,
-            "fair_trade": self.fair_trade,
-            "organic": self.organic,
-            "eco_score": self.eco_score,
-            "nutri_score": self.nutri_score,
-            "sustainability_score": self.sustainability_score,
-            "substitute_id": self.substitute_id,
-            "image_url": self.image_url
-        }
 
 
 class Store(Base):
@@ -70,15 +55,3 @@ class Store(Base):
     discount_green = Column(Float, default=0.0)  # % discount on green products
     description = Column(Text, nullable=True)
 
-    def to_dict(self):
-        return {
-            "id": self.id,
-            "name": self.name,
-            "store_type": self.store_type,
-            "address": self.address,
-            "latitude": self.latitude,
-            "longitude": self.longitude,
-            "rating_eco": self.rating_eco,
-            "discount_green": self.discount_green,
-            "description": self.description
-        }

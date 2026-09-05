@@ -1,12 +1,15 @@
-const getApiBase = () => {
+export const getApiBase = () => {
   if (import.meta.env.VITE_API_URL) return import.meta.env.VITE_API_URL;
-  if (typeof window !== 'undefined') {
-    return `${window.location.protocol}//${window.location.hostname}:8000/api`;
-  }
-  return 'http://localhost:8000/api';
+  // En producción detrás del reverse proxy de Nginx o en desarrollo con proxy de Vite
+  return '/api';
 };
 
-const API_BASE = getApiBase();
+export const API_BASE = getApiBase();
+
+export const API_DOCS_URL = import.meta.env.VITE_API_URL
+  ? `${import.meta.env.VITE_API_URL.replace(/\/api$/, '')}/docs`
+  : (import.meta.env.PROD ? '/docs' : 'http://localhost:8000/docs');
+
 
 export async function fetchProducts(params = {}) {
   const query = new URLSearchParams();

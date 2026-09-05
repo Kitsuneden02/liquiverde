@@ -20,7 +20,8 @@
     "nutri_score": "c",
     "substitute_id": 2,
     "image_url": "https://images.openfoodfacts.org/images/products/780/290/000/1308/front_es.8.400.jpg",
-    "sustainability_score": 53.1
+    "sustainability_score": 58.1,
+    "product_family": "leche_y_bebidas_vegetales"
   },
   {
     "id": 2,
@@ -43,7 +44,8 @@
     "nutri_score": "b",
     "substitute_id": 3,
     "image_url": "https://images.openfoodfacts.org/images/products/780/292/000/0091/front_es.26.400.jpg",
-    "sustainability_score": 77.7
+    "sustainability_score": 84.2,
+    "product_family": "leche_y_bebidas_vegetales"
   },
   {
     "id": 3,
@@ -66,7 +68,8 @@
     "nutri_score": "a",
     "substitute_id": null,
     "image_url": "https://images.openfoodfacts.org/images/products/780/467/193/0498/front_es.3.400.jpg",
-    "sustainability_score": 85.7
+    "sustainability_score": 95.7,
+    "product_family": "leche_y_bebidas_vegetales"
   },
   {
     "id": 4,
@@ -89,7 +92,8 @@
     "nutri_score": "d",
     "substitute_id": 5,
     "image_url": "https://images.openfoodfacts.org/images/products/843/656/926/3242/front_es.18.400.jpg",
-    "sustainability_score": 32.3
+    "sustainability_score": 27.3,
+    "product_family": "carnes_y_proteinas"
   },
   {
     "id": 5,
@@ -112,7 +116,8 @@
     "nutri_score": "a",
     "substitute_id": null,
     "image_url": "https://images.openfoodfacts.org/images/products/842/002/004/5133/front_es.3.400.jpg",
-    "sustainability_score": 90.6
+    "sustainability_score": 99.0,
+    "product_family": "legumbres"
   },
   {
     "id": 6,
@@ -135,7 +140,8 @@
     "nutri_score": "d",
     "substitute_id": 5,
     "image_url": "https://images.openfoodfacts.org/images/products/848/001/724/5748/front_es.14.400.jpg",
-    "sustainability_score": 41.9
+    "sustainability_score": 36.9,
+    "product_family": "carnes_y_proteinas"
   },
   {
     "id": 7,
@@ -158,7 +164,8 @@
     "nutri_score": "c",
     "substitute_id": 8,
     "image_url": "https://images.openfoodfacts.org/images/products/780/142/021/0139/front_es.7.400.jpg",
-    "sustainability_score": 53.5
+    "sustainability_score": 55.5,
+    "product_family": "arroces_y_granos"
   },
   {
     "id": 8,
@@ -181,7 +188,8 @@
     "nutri_score": "a",
     "substitute_id": null,
     "image_url": "https://images.openfoodfacts.org/images/products/848/001/000/1129/front_es.55.400.jpg",
-    "sustainability_score": 82.4
+    "sustainability_score": 92.4,
+    "product_family": "arroces_y_granos"
   },
   {
     "id": 9,
@@ -204,11 +212,12 @@
     "nutri_score": "d",
     "substitute_id": 10,
     "image_url": "https://images.openfoodfacts.org/images/products/750/102/602/8038/front_en.3.400.jpg",
-    "sustainability_score": 43.5
+    "sustainability_score": 38.5,
+    "product_family": "detergentes"
   },
   {
     "id": 10,
-    "barcode": "7501026028039",
+    "barcode": "7804664870015",
     "name": "Detergente Ecológico Biodegradable FreeMet 3L",
     "brand": "FreeMet",
     "category": "limpieza_y_hogar",
@@ -227,7 +236,8 @@
     "nutri_score": "a",
     "substitute_id": null,
     "image_url": "https://images.openfoodfacts.org/images/products/750/102/602/8038/front_en.3.400.jpg",
-    "sustainability_score": 87.5
+    "sustainability_score": 93.0,
+    "product_family": "detergentes"
   },
   {
     "id": 11,
@@ -250,7 +260,8 @@
     "nutri_score": "d",
     "substitute_id": 12,
     "image_url": "https://images.openfoodfacts.org/images/products/780/281/000/2099/front_en.22.400.jpg",
-    "sustainability_score": 50.0
+    "sustainability_score": 48.6,
+    "product_family": "aceites"
   },
   {
     "id": 12,
@@ -273,7 +284,8 @@
     "nutri_score": "a",
     "substitute_id": null,
     "image_url": "https://images.openfoodfacts.org/images/products/780/281/000/2310/front_es.9.400.jpg",
-    "sustainability_score": 83.0
+    "sustainability_score": 84.6,
+    "product_family": "aceites"
   },
   {
     "id": 13,
@@ -296,7 +308,8 @@
     "nutri_score": "a",
     "substitute_id": null,
     "image_url": "https://images.openfoodfacts.org/images/products/780/281/000/6592/front_es.15.400.jpg",
-    "sustainability_score": 61.6
+    "sustainability_score": 63.6,
+    "product_family": "frutas"
   },
   {
     "id": 14,
@@ -319,7 +332,8 @@
     "nutri_score": "a",
     "substitute_id": null,
     "image_url": "https://images.openfoodfacts.org/images/products/780/123/513/1117/front_es.44.400.jpg",
-    "sustainability_score": 88.0
+    "sustainability_score": 96.0,
+    "product_family": "carnes_y_proteinas"
   },
   {
     "id": 15,
@@ -342,7 +356,8 @@
     "nutri_score": "c",
     "substitute_id": 16,
     "image_url": "https://images.openfoodfacts.org/images/products/761/328/752/1507/front_es.21.400.jpg",
-    "sustainability_score": 50.4
+    "sustainability_score": 45.4,
+    "product_family": "cereales_desayuno"
   },
   {
     "id": 16,
@@ -365,7 +380,8 @@
     "nutri_score": "a",
     "substitute_id": null,
     "image_url": "https://images.openfoodfacts.org/images/products/780/200/001/4130/front_fr.3.400.jpg",
-    "sustainability_score": 84.9
+    "sustainability_score": 91.9,
+    "product_family": "cereales_desayuno"
   },
   {
     "id": 17,
@@ -388,7 +404,8 @@
     "nutri_score": "e",
     "substitute_id": 18,
     "image_url": "https://images.openfoodfacts.org/images/products/780/161/000/0571/front_es.18.400.jpg",
-    "sustainability_score": 46.9
+    "sustainability_score": 45.9,
+    "product_family": "bebidas_azucaradas"
   },
   {
     "id": 18,
@@ -411,7 +428,8 @@
     "nutri_score": "a",
     "substitute_id": null,
     "image_url": "https://images.openfoodfacts.org/images/products/780/187/505/5132/front_es.4.400.jpg",
-    "sustainability_score": 86.6
+    "sustainability_score": 99.0,
+    "product_family": "infusiones_y_aguas"
   },
   {
     "id": 19,
@@ -434,7 +452,8 @@
     "nutri_score": "c",
     "substitute_id": 28,
     "image_url": "https://images.openfoodfacts.org/images/products/780/257/500/4437/front_es.3.400.jpg",
-    "sustainability_score": 62.5
+    "sustainability_score": 67.5,
+    "product_family": "pastas"
   },
   {
     "id": 20,
@@ -457,7 +476,8 @@
     "nutri_score": "a",
     "substitute_id": 29,
     "image_url": "https://images.openfoodfacts.org/images/products/780/257/535/3047/front_en.3.400.jpg",
-    "sustainability_score": 80.4
+    "sustainability_score": 84.8,
+    "product_family": "salsas"
   },
   {
     "id": 21,
@@ -480,7 +500,8 @@
     "nutri_score": "e",
     "substitute_id": 22,
     "image_url": "https://images.openfoodfacts.org/images/products/301/762/042/2003/front_en.879.400.jpg",
-    "sustainability_score": 45.9
+    "sustainability_score": 36.6,
+    "product_family": "untables"
   },
   {
     "id": 22,
@@ -503,7 +524,8 @@
     "nutri_score": "a",
     "substitute_id": null,
     "image_url": "https://images.openfoodfacts.org/images/products/779/815/195/2332/front_en.58.400.jpg",
-    "sustainability_score": 79.1
+    "sustainability_score": 86.2,
+    "product_family": "untables"
   },
   {
     "id": 23,
@@ -526,7 +548,8 @@
     "nutri_score": "c",
     "substitute_id": 34,
     "image_url": "https://images.openfoodfacts.org/images/products/780/223/008/6648/front_en.37.400.jpg",
-    "sustainability_score": 68.6
+    "sustainability_score": 70.8,
+    "product_family": "galletas"
   },
   {
     "id": 24,
@@ -549,7 +572,8 @@
     "nutri_score": "b",
     "substitute_id": 25,
     "image_url": "https://images.openfoodfacts.org/images/products/780/347/300/2662/front_en.3.400.jpg",
-    "sustainability_score": 65.7
+    "sustainability_score": 60.5,
+    "product_family": "panes"
   },
   {
     "id": 25,
@@ -572,7 +596,8 @@
     "nutri_score": "a",
     "substitute_id": null,
     "image_url": "https://images.openfoodfacts.org/images/products/780/348/000/1436/front_es.24.400.jpg",
-    "sustainability_score": 88.0
+    "sustainability_score": 87.8,
+    "product_family": "panes"
   },
   {
     "id": 26,
@@ -595,7 +620,8 @@
     "nutri_score": "a",
     "substitute_id": null,
     "image_url": "https://images.openfoodfacts.org/images/products/780/396/000/0539/front_es.4.400.jpg",
-    "sustainability_score": 85.9
+    "sustainability_score": 92.9,
+    "product_family": "semillas"
   },
   {
     "id": 27,
@@ -618,7 +644,8 @@
     "nutri_score": "c",
     "substitute_id": 18,
     "image_url": "https://images.openfoodfacts.org/images/products/780/282/067/8147/front_en.3.400.jpg",
-    "sustainability_score": 57.5
+    "sustainability_score": 56.5,
+    "product_family": "bebidas_azucaradas"
   },
   {
     "id": 28,
@@ -641,7 +668,8 @@
     "nutri_score": "a",
     "substitute_id": null,
     "image_url": "https://images.openfoodfacts.org/images/products/780/257/501/5600/front_es.23.400.jpg",
-    "sustainability_score": 74.0
+    "sustainability_score": 84.6,
+    "product_family": "pastas"
   },
   {
     "id": 29,
@@ -664,7 +692,8 @@
     "nutri_score": "a",
     "substitute_id": null,
     "image_url": "https://images.openfoodfacts.org/images/products/807/680/951/3722/front_fr.1045.400.jpg",
-    "sustainability_score": 78.5
+    "sustainability_score": 85.8,
+    "product_family": "salsas"
   },
   {
     "id": 30,
@@ -687,7 +716,8 @@
     "nutri_score": "a",
     "substitute_id": null,
     "image_url": "https://images.openfoodfacts.org/images/products/780/130/500/4075/front_es.12.400.jpg",
-    "sustainability_score": 81.0
+    "sustainability_score": 91.2,
+    "product_family": "legumbres"
   },
   {
     "id": 31,
@@ -710,7 +740,8 @@
     "nutri_score": "a",
     "substitute_id": null,
     "image_url": "https://images.openfoodfacts.org/images/products/780/130/500/4099/front_es.33.400.jpg",
-    "sustainability_score": 82.5
+    "sustainability_score": 91.3,
+    "product_family": "legumbres"
   },
   {
     "id": 32,
@@ -733,7 +764,8 @@
     "nutri_score": "a",
     "substitute_id": 33,
     "image_url": "https://images.openfoodfacts.org/images/products/780/416/500/0089/front_es.3.400.jpg",
-    "sustainability_score": 54.0
+    "sustainability_score": 77.8,
+    "product_family": "huevos"
   },
   {
     "id": 33,
@@ -756,7 +788,8 @@
     "nutri_score": "a",
     "substitute_id": null,
     "image_url": "https://images.openfoodfacts.org/images/products/780/414/000/0042/front_es.4.400.jpg",
-    "sustainability_score": 84.5
+    "sustainability_score": 89.0,
+    "product_family": "huevos"
   },
   {
     "id": 34,
@@ -779,7 +812,8 @@
     "nutri_score": "c",
     "substitute_id": null,
     "image_url": "https://images.openfoodfacts.org/images/products/779/004/582/7054/front_es.7.400.jpg",
-    "sustainability_score": 70.5
+    "sustainability_score": 78.8,
+    "product_family": "galletas"
   },
   {
     "id": 35,
@@ -802,7 +836,8 @@
     "nutri_score": "a",
     "substitute_id": null,
     "image_url": "https://images.openfoodfacts.org/images/products/780/874/910/0356/front_en.3.400.jpg",
-    "sustainability_score": 88.0
+    "sustainability_score": 93.0,
+    "product_family": "legumbres"
   },
   {
     "id": 36,
@@ -825,7 +860,8 @@
     "nutri_score": "d",
     "substitute_id": null,
     "image_url": "https://images.openfoodfacts.org/images/products/780/292/000/4136/front_es.3.400.jpg",
-    "sustainability_score": 62.0
+    "sustainability_score": 61.1,
+    "product_family": "quesos"
   },
   {
     "id": 37,
@@ -848,7 +884,8 @@
     "nutri_score": "c",
     "substitute_id": 38,
     "image_url": "https://images.openfoodfacts.org/images/products/750/102/602/8038/front_en.3.400.jpg",
-    "sustainability_score": 47.0
+    "sustainability_score": 72.0,
+    "product_family": "lavalozas"
   },
   {
     "id": 38,
@@ -871,7 +908,8 @@
     "nutri_score": "a",
     "substitute_id": null,
     "image_url": "https://images.openfoodfacts.org/images/products/750/102/602/8038/front_en.3.400.jpg",
-    "sustainability_score": 89.0
+    "sustainability_score": 99.0,
+    "product_family": "lavalozas"
   },
   {
     "id": 39,
@@ -894,7 +932,8 @@
     "nutri_score": "a",
     "substitute_id": null,
     "image_url": "https://images.openfoodfacts.org/images/products/780/122/080/1247/front_es.3.400.jpg",
-    "sustainability_score": 83.0
+    "sustainability_score": 83.9,
+    "product_family": "verduras"
   },
   {
     "id": 40,
@@ -917,6 +956,7 @@
     "nutri_score": "a",
     "substitute_id": null,
     "image_url": "https://images.openfoodfacts.org/images/products/780/122/000/2828/front_es.20.400.jpg",
-    "sustainability_score": 86.5
+    "sustainability_score": 86.4,
+    "product_family": "frutas"
   }
 ]

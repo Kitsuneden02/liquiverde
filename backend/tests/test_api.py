@@ -1,10 +1,6 @@
 import pytest
-from fastapi.testclient import TestClient
-from app.main import app
 
-client = TestClient(app)
-
-def test_root_health():
+def test_root_health(client):
     response = client.get("/")
     assert response.status_code == 200
     data = response.json()
@@ -12,7 +8,7 @@ def test_root_health():
     assert data["app"] == "LiquiVerde API"
 
 
-def test_get_products():
+def test_get_products(client):
     response = client.get("/api/products")
     assert response.status_code == 200
     products = response.json()
@@ -22,7 +18,7 @@ def test_get_products():
     assert "sustainability_score" in products[0]
 
 
-def test_search_products_filter():
+def test_search_products_filter(client):
     response = client.get("/api/products?q=Leche")
     assert response.status_code == 200
     products = response.json()
@@ -30,7 +26,7 @@ def test_search_products_filter():
     assert any("Leche" in p["name"] for p in products)
 
 
-def test_get_categories():
+def test_get_categories(client):
     response = client.get("/api/products/categories")
     assert response.status_code == 200
     categories = response.json()
@@ -38,7 +34,7 @@ def test_get_categories():
     assert "lacteos_y_vegetales" in categories
 
 
-def test_get_by_barcode():
+def test_get_by_barcode(client):
     barcode = "7802900001308"
     response = client.get(f"/api/products/barcode/{barcode}")
     assert response.status_code == 200
@@ -47,7 +43,7 @@ def test_get_by_barcode():
     assert "Leche" in data["name"]
 
 
-def test_optimize_knapsack_api():
+def test_optimize_knapsack_api(client):
     payload = {
         "budget": 6000.0,
         "sustainability_weight": 0.5,
@@ -62,7 +58,7 @@ def test_optimize_knapsack_api():
     assert data["co2_avoided_kg"] >= 0.0
 
 
-def test_get_substitutes_api():
+def test_get_substitutes_api(client):
     product_id = 1  # Leche tradicional con plástico
     response = client.get(f"/api/substitutes/{product_id}")
     assert response.status_code == 200
@@ -76,7 +72,7 @@ def test_get_substitutes_api():
     assert "recommendation_reason" in first_sub
 
 
-def test_get_stores_api():
+def test_get_stores_api(client):
     response = client.get("/api/stores")
     assert response.status_code == 200
     stores = response.json()
@@ -85,10 +81,22 @@ def test_get_stores_api():
     assert "longitude" in stores[0]
 
 
-def test_get_impact_summary_api():
+def test_get_impact_summary_api(client):
     response = client.get("/api/impact/summary")
     assert response.status_code == 200
     data = response.json()
     assert "total_catalog_products" in data
     assert "trees_equivalent_annual" in data
     assert "potential_basket_co2_savings_kg" in data
+    assert "potential_basket_savings_clp" in data
+    assert "projected_yearly_household_savings_clp" in data
+    assert "projected_yearly_co2_avoided_kg" in data
+
+    # Verificación de consistencia matemática entre métricas mensuales y anuales
+    assert data["projected_yearly_household_savings_clp"] == pytest.approx(
+        12 * data["potential_basket_savings_clp"], abs=1.0
+    )
+    assert data["projected_yearly_co2_avoided_kg"] == pytest.approx(
+        12 * data["potential_basket_co2_savings_kg"], abs=0.1
+    )
+

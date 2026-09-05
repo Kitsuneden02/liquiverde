@@ -10,6 +10,64 @@ Identifica y califica alternativas para un producto dado, optimizando:
 
 from typing import List, Dict, Any, Optional
 
+# Mapeo de familias nutricional y funcionalmente afines
+AFFINE_FAMILIES: Dict[str, set] = {
+    "carnes_y_proteinas": {"carnes_y_proteinas", "legumbres", "huevos"},
+    "legumbres": {"legumbres", "carnes_y_proteinas"},
+    "huevos": {"huevos", "carnes_y_proteinas"},
+    "bebidas_azucaradas": {"bebidas_azucaradas", "infusiones_y_aguas"},
+    "infusiones_y_aguas": {"infusiones_y_aguas"},
+    "leche_y_bebidas_vegetales": {"leche_y_bebidas_vegetales"},
+}
+
+def infer_product_family(product: Any) -> str:
+    """Infiere la familia funcional de un producto a partir de su nombre y categoría si no está explícita."""
+    name = (getattr(product, "name", "") or "").lower()
+    category = getattr(product, "category", "") or ""
+    
+    if any(k in name for k in ["detergente", "suavizante", "cloro"]):
+        return "detergentes"
+    if any(k in name for k in ["lavaloza", "quix", "lavavajilla"]):
+        return "lavalozas"
+    if any(k in name for k in ["leche", "vilay", "colún", "colun", "soprole", "bebida de avena", "bebida de soya", "bebida de almendra", "bebida vegetal"]):
+        return "leche_y_bebidas_vegetales"
+    if any(k in name for k in ["queso", "cheese"]):
+        return "quesos"
+    if any(k in name for k in ["huevo", "huevos", "egg"]):
+        return "huevos"
+    if any(k in name for k in ["carne", "vacuno", "molida", "hamburguesa", "pollo", "pescado", "jurel", "atún", "atun"]):
+        return "carnes_y_proteinas"
+    if any(k in name for k in ["lenteja", "garbanzo", "poroto", "tofu", "legumbre"]):
+        return "legumbres"
+    if any(k in name for k in ["aceite", "oliva"]):
+        return "aceites"
+    if any(k in name for k in ["salsa", "pomarola", "tuco", "pesto"]):
+        return "salsas"
+    if any(k in name for k in ["nutella", "maní", "mani", "mantequilla de man", "untable", "avellana"]):
+        return "untables"
+    if any(k in name for k in ["galleta", "cookie", "frutigran", "biscuit", "cracker"]):
+        return "galletas"
+    if any(k in name for k in ["pan ", "pan de", "masa madre", "molde", "tostada"]):
+        return "panes"
+    if any(k in name for k in ["arroz", "quinoa", "quínoa"]):
+        return "arroces_y_granos"
+    if any(k in name for k in ["pasta", "spaghetti", "fideo", "tallarín", "tallarin"]):
+        return "pastas"
+    if any(k in name for k in ["cereal", "avena", "chocapic", "quaker"]):
+        return "cereales_desayuno"
+    if any(k in name for k in ["semilla", "chía", "chia", "linaza"]):
+        return "semillas"
+    if any(k in name for k in ["infusión", "infusion", "té", "te", "agua", "café", "cafe"]):
+        return "infusiones_y_aguas"
+    if any(k in name for k in ["coca-cola", "powerade", "gatorade", "cola", "fanta", "sprite", "néctar", "nectar"]):
+        return "bebidas_azucaradas"
+    if category == "frutas_y_verduras":
+        if any(k in name for k in ["manzana", "arándano", "arandano", "fruta", "plátano", "platano", "naranja"]):
+            return "frutas"
+        return "verduras"
+    return category or "otros"
+
+
 def generate_substitution_reason(
     original: Any,
     alt: Any,
@@ -38,8 +96,9 @@ def generate_substitution_reason(
     if getattr(alt, "fair_trade", False):
         reasons.append("apoyas a cooperativas locales de comercio justo")
 
-    if "reciclable" in (getattr(alt, "packaging_type", "") or "").lower() or "granel" in (getattr(alt, "packaging_type", "") or "").lower():
-        reasons.append(f"empaque eco-responsable ({alt.packaging_type})")
+    pkg_str = getattr(alt, "packaging_type", "") or ""
+    if "reciclable" in pkg_str.lower() or "granel" in pkg_str.lower():
+        reasons.append(f"empaque eco-responsable ({pkg_str or 'sostenible'})")
 
     return " | ".join(reasons)
 
@@ -47,82 +106,32 @@ def generate_substitution_reason(
 def are_products_compatible_substitutes(orig: Any, alt: Any) -> bool:
     """
     Determina si dos productos son culinaria y funcionalmente compatibles para sustitución.
-    Previene sustituciones incoherentes (ej: Aceite por Salsa de Tomate, o Spaghetti por Salsa).
+    Utiliza el campo explícito product_family y relaciones de afinidad nutricional/culinaria.
     """
-    if orig.id == alt.id:
-        return False
+    if getattr(orig, "id", None) is not None and getattr(alt, "id", None) is not None:
+        if orig.id == alt.id:
+            return False
 
-    orig_cat = getattr(orig, "category", "")
-    alt_cat = getattr(alt, "category", "")
-    if orig_cat != alt_cat:
+    orig_cat = getattr(orig, "category", "") or ""
+    alt_cat = getattr(alt, "category", "") or ""
+    if orig_cat and alt_cat and orig_cat != alt_cat:
         return False
 
     orig_sub_id = getattr(orig, "substitute_id", None)
     # Si tiene enlace directo curado dentro de la misma categoría, respetarlo
-    if orig_sub_id is not None and orig_sub_id == alt.id:
+    if orig_sub_id is not None and getattr(alt, "id", None) == orig_sub_id:
         return True
 
-    orig_name = (getattr(orig, "name", "") or "").lower()
-    alt_name = (getattr(alt, "name", "") or "").lower()
+    orig_family = getattr(orig, "product_family", None) or infer_product_family(orig)
+    alt_family = getattr(alt, "product_family", None) or infer_product_family(alt)
 
-    # 1. Aceites: solo pueden reemplazarse por otros aceites
-    if "aceite" in orig_name or "aceite" in alt_name:
-        return "aceite" in orig_name and "aceite" in alt_name
-
-    # 2. Salsas de tomate: solo por salsas o purés de tomate
-    if "salsa" in orig_name or "tomate" in orig_name or "salsa" in alt_name or "tomate" in alt_name:
-        return ("salsa" in orig_name or "tomate" in orig_name) and ("salsa" in alt_name or "tomate" in alt_name)
-
-    # 3. Cremas dulces / Untables (Nutella, Pasta de Maní)
-    sweet_spreads = ["nutella", "avellana", "maní", "mani", "mermelada", "cacao"]
-    if any(w in orig_name for w in sweet_spreads) or any(w in alt_name for w in sweet_spreads):
-        return any(w in orig_name for w in sweet_spreads) and any(w in alt_name for w in sweet_spreads)
-
-    # 4. Pastas y fideos:
-    pastas = ["spaghetti", "fideo", "pasta", "tallarín", "tallarin"]
-    if any(w in orig_name for w in pastas) or any(w in alt_name for w in pastas):
-        return any(w in orig_name for w in pastas) and any(w in alt_name for w in pastas)
-
-    # 5. Arroz y granos:
-    rice = ["arroz", "quinoa", "quínoa"]
-    if any(w in orig_name for w in rice) or any(w in alt_name for w in rice):
-        return any(w in orig_name for w in rice) and any(w in alt_name for w in rice)
-
-    # 6. Cereales de desayuno y Avena:
-    cereals = ["cereal", "avena", "chocapic", "quaker"]
-    if any(w in orig_name for w in cereals) or any(w in alt_name for w in cereals):
-        return any(w in orig_name for w in cereals) and any(w in alt_name for w in cereals)
-
-    # 7. Semillas (Chía, Linaza):
-    seeds = ["semilla", "chía", "chia", "linaza"]
-    if any(w in orig_name for w in seeds) or any(w in alt_name for w in seeds):
-        return any(w in orig_name for w in seeds) and any(w in alt_name for w in seeds)
-
-    # 8. Bebidas:
-    healthy_drinks = ["infusión", "infusion", "té", "te", "agua", "cachantun"]
-    sugary_drinks = ["coca-cola", "powerade", "fanta", "sprite"]
-    if any(w in orig_name for w in healthy_drinks) and any(w in alt_name for w in sugary_drinks):
+    if orig_family and alt_family:
+        if orig_family == alt_family:
+            return True
+        allowed_affines = AFFINE_FAMILIES.get(orig_family, set())
+        if alt_family in allowed_affines:
+            return True
         return False
-    if "coca-cola" in orig_name or "powerade" in orig_name:
-        return any(w in alt_name for w in ["infusión", "infusion", "té", "te", "agua", "bebida", "jugo"])
-
-    # 9. Panes:
-    if "pan" in orig_name or "pan" in alt_name:
-        return "pan" in orig_name and "pan" in alt_name
-
-    # 10. Detergentes / Limpieza:
-    if "detergente" in orig_name or "detergente" in alt_name:
-        return "detergente" in orig_name and "detergente" in alt_name
-
-    # 11. Lácteos y vegetales:
-    dairy = ["leche", "avena", "soya", "almendra", "vegetal"]
-    if any(w in orig_name for w in dairy) or any(w in alt_name for w in dairy):
-        return any(w in orig_name for w in dairy) and any(w in alt_name for w in dairy)
-
-    # 12. Proteínas (carnes rojas, pollo, legumbres, pescado, tofu):
-    proteins = ["carne", "vacuno", "hamburguesa", "lenteja", "garbanzo", "poroto", "jurel", "tofu", "soya"]
-    if any(w in orig_name for w in proteins) or any(w in alt_name for w in proteins):
-        return any(w in orig_name for w in proteins) and any(w in alt_name for w in proteins)
 
     return True
 
@@ -145,7 +154,7 @@ def find_substitutes_for_product(
         if not are_products_compatible_substitutes(original_product, alt):
             continue
 
-        is_direct_substitute = (original_product.substitute_id == alt.id)
+        is_direct_substitute = (getattr(original_product, "substitute_id", None) == getattr(alt, "id", None))
 
         alt_price = float(alt.price)
         alt_co2 = float(alt.co2_kg)
@@ -160,7 +169,6 @@ def find_substitutes_for_product(
         # Un candidato es viable si mejora la sostenibilidad O si ahorra dinero sin empeorar drásticamente la sostenibilidad
         if score_gain > 5.0 or (price_diff > 0 and score_gain >= -5.0) or is_direct_substitute:
             # Score de sustitución compuesto
-            # Normalizamos ganancia de score (0-100 -> 0-1) y beneficio de precio relativo
             norm_score_gain = score_gain / 100.0
             norm_price_gain = (price_diff / orig_price) if orig_price > 0 else 0.0
 

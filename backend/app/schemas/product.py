@@ -20,20 +20,16 @@ class ProductBase(BaseModel):
     eco_score: Optional[str] = "c"
     nutri_score: Optional[str] = "c"
     sustainability_score: float = 50.0
+    environmental_score: float = 50.0
+    social_score: float = 50.0
+    economic_score: float = 50.0
+    product_family: Optional[str] = None
+    is_external: bool = False
+    data_quality: str = "verified"
     substitute_id: Optional[int] = None
     image_url: Optional[str] = None
-
-class ProductCreate(ProductBase):
-    pass
 
 class ProductOut(ProductBase):
     id: int
     model_config = ConfigDict(from_attributes=True)
 
-class ProductFilter(BaseModel):
-    query: Optional[str] = None
-    category: Optional[str] = None
-    eco_score: Optional[str] = None
-    max_price: Optional[float] = None
-    only_organic: Optional[bool] = False
-    only_fair_trade: Optional[bool] = False

@@ -1,5 +1,5 @@
 import React from 'react';
-import { X, Leaf, Droplets, Package, MapPin, ShieldCheck, DollarSign, ArrowRight, ShoppingCart, Check } from 'lucide-react';
+import { X, Leaf, ArrowRight, ShoppingCart, Check } from 'lucide-react';
 
 import { formatCategoryName } from '../utils/formatters';
 
@@ -114,8 +114,21 @@ export default function ProductDetailModal({
               {product.name}
             </h2>
 
-            <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>
-              Código de Barras EAN-13: <code style={{ color: 'var(--primary-light)' }}>{product.barcode}</code>
+            <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '0.25rem', display: 'flex', alignItems: 'center', gap: '0.6rem', flexWrap: 'wrap' }}>
+              <span>Código: <code style={{ color: 'var(--primary-light)' }}>{product.barcode}</code></span>
+              {(product.is_external || product.data_quality === 'estimated') && (
+                <span style={{
+                  background: 'rgba(245, 158, 11, 0.18)',
+                  color: '#fbbf24',
+                  border: '1px solid rgba(245, 158, 11, 0.35)',
+                  padding: '0.15rem 0.45rem',
+                  borderRadius: '4px',
+                  fontSize: '0.72rem',
+                  fontWeight: 600
+                }}>
+                  ⚠️ Precio y métricas estimadas (Open Food Facts)
+                </span>
+              )}
             </div>
 
             {/* Price Tag positioned safely below title away from X button */}
@@ -152,42 +165,42 @@ export default function ProductDetailModal({
             {/* Dimensión Ambiental */}
             <div style={{ background: 'rgba(255, 255, 255, 0.03)', padding: '0.8rem', borderRadius: '8px' }}>
               <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 600 }}>1. AMBIENTAL (50%)</div>
-              <div style={{ fontSize: '1.1rem', fontWeight: 700, color: '#34d399', margin: '0.3rem 0' }}>
-                {product.co2_kg} kg CO₂e
+              <div style={{ fontSize: '1.25rem', fontWeight: 800, color: '#34d399', margin: '0.3rem 0' }}>
+                {product.environmental_score || 50.0} <span style={{ fontSize: '0.75rem', fontWeight: 500, color: 'var(--text-muted)' }}>/100</span>
               </div>
               <div style={{ fontSize: '0.72rem', color: 'var(--text-sub)' }}>
-                Empaque: {product.packaging_score}/100 pts
+                Huella: {product.co2_kg} kg CO₂e
               </div>
               <div style={{ fontSize: '0.72rem', color: 'var(--text-sub)' }}>
-                Eco-Score: Grado {ecoGrade.toUpperCase()}
+                Empaque: {product.packaging_score}/100 • Eco-Score: {ecoGrade.toUpperCase()}
               </div>
             </div>
 
             {/* Dimensión Social */}
             <div style={{ background: 'rgba(255, 255, 255, 0.03)', padding: '0.8rem', borderRadius: '8px' }}>
               <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 600 }}>2. SOCIAL (30%)</div>
-              <div style={{ fontSize: '1.1rem', fontWeight: 700, color: '#fbbf24', margin: '0.3rem 0' }}>
-                {product.origin_score}/100 pts
+              <div style={{ fontSize: '1.25rem', fontWeight: 800, color: '#fbbf24', margin: '0.3rem 0' }}>
+                {product.social_score || 50.0} <span style={{ fontSize: '0.75rem', fontWeight: 500, color: 'var(--text-muted)' }}>/100</span>
               </div>
               <div style={{ fontSize: '0.72rem', color: 'var(--text-sub)' }}>
-                Origen: {product.origin || 'Nacional'}
+                Origen: {product.origin || 'Nacional'} ({product.origin_score}/100)
               </div>
               <div style={{ fontSize: '0.72rem', color: 'var(--text-sub)' }}>
-                {product.fair_trade ? '✅ Comercio Justo' : 'Comercio estándar'}
+                {product.fair_trade ? '✅ Comercio Justo (+15 pts)' : 'Comercio estándar'}
               </div>
             </div>
 
             {/* Dimensión Económica */}
             <div style={{ background: 'rgba(255, 255, 255, 0.03)', padding: '0.8rem', borderRadius: '8px' }}>
               <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 600 }}>3. ECONÓMICA (20%)</div>
-              <div style={{ fontSize: '1.1rem', fontWeight: 700, color: '#38bdf8', margin: '0.3rem 0' }}>
-                ${Number(product.price).toLocaleString('es-CL')}
+              <div style={{ fontSize: '1.25rem', fontWeight: 800, color: '#38bdf8', margin: '0.3rem 0' }}>
+                {product.economic_score || 50.0} <span style={{ fontSize: '0.75rem', fontWeight: 500, color: 'var(--text-muted)' }}>/100</span>
               </div>
               <div style={{ fontSize: '0.72rem', color: 'var(--text-sub)' }}>
-                Agua virtual: {product.water_liters} L
+                Precio: ${Number(product.price).toLocaleString('es-CL')}
               </div>
               <div style={{ fontSize: '0.72rem', color: 'var(--text-sub)' }}>
-                {product.organic ? '🌿 Orgánico' : 'Convencional'}
+                Accesibilidad vs promedio categoría
               </div>
             </div>
           </div>

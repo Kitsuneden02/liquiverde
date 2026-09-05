@@ -14,7 +14,11 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copiar código fuente
 COPY . .
 
+# Crear directorio persistente para base de datos SQLite
+RUN mkdir -p /app/db
+
 # Exponer puerto 8000
+
 EXPOSE 8000
 
 ENV PYTHONPATH=/app

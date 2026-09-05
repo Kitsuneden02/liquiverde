@@ -1,7 +1,7 @@
 import React from 'react';
 import { ShoppingCart } from 'lucide-react';
 
-export default function CartFloatingButton({ isOpen, onToggle, itemCount = 0, totalAmount = 0 }) {
+export default function CartFloatingButton({ onToggle, itemCount = 0, totalAmount = 0 }) {
   return (
     <button
       id="floating-cart-btn"

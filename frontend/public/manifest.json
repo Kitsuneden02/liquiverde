@@ -1,0 +1,26 @@
+{
+  "name": "LiquiVerde — Retail Inteligente & Sostenible",
+  "short_name": "LiquiVerde",
+  "description": "Plataforma de retail inteligente para optimizar canastas de compra, maximizar el ahorro económico y reducir el impacto ambiental.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#0f172a",
+  "theme_color": "#10b981",
+  "categories": ["shopping", "lifestyle", "productivity"],
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

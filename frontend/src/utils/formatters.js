@@ -6,8 +6,7 @@ export const CATEGORY_LABELS = {
   lacteos_y_vegetales: 'Lácteos y Vegetales',
   limpieza_y_hogar: 'Limpieza y Hogar',
   panaderia_y_snacks: 'Panadería y Snacks',
-  proteinas_y_legumbres: 'Proteínas y Legumbres',
-  desayuno_y_snacks: 'Desayuno y Snacks'
+  proteinas_y_legumbres: 'Proteínas y Legumbres'
 };
 
 export function formatCategoryName(cat) {

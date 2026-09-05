@@ -20,8 +20,21 @@ def optimize_knapsack(
     Si se entregan product_ids (optimización sobre canasta del usuario), evalúa alternativas
     de sustitución para cada producto seleccionado con el algoritmo Multiple-Choice Knapsack.
     """
-    if req.product_ids and len(req.product_ids) > 0:
-        basket_products = db.query(Product).filter(Product.id.in_(req.product_ids)).all()
+    item_quantities = {}
+    target_ids = []
+
+    if req.items and len(req.items) > 0:
+        for it in req.items:
+            item_quantities[it.product_id] = it.quantity
+            target_ids.append(it.product_id)
+    elif req.product_ids and len(req.product_ids) > 0:
+        for pid in req.product_ids:
+            item_quantities[pid] = item_quantities.get(pid, 0) + 1
+            if pid not in target_ids:
+                target_ids.append(pid)
+
+    if target_ids:
+        basket_products = db.query(Product).filter(Product.id.in_(target_ids)).all()
         if not basket_products:
             raise HTTPException(status_code=400, detail="Ninguno de los IDs de producto solicitados existe.")
 
@@ -32,7 +45,8 @@ def optimize_knapsack(
             all_products=all_products,
             budget=req.budget,
             sustainability_weight=req.sustainability_weight,
-            mandatory_product_ids=req.mandatory_product_ids
+            mandatory_product_ids=req.mandatory_product_ids,
+            item_quantities=item_quantities
         )
     else:
         # Evalúa todo el catálogo disponible

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import Navbar from './components/Navbar';
 import BarcodeScannerModal from './components/BarcodeScannerModal';
 import ProductDetailModal from './components/ProductDetailModal';
@@ -10,15 +10,45 @@ import ComparatorPage from './pages/ComparatorPage';
 import DashboardPage from './pages/DashboardPage';
 import StoreMapPage from './pages/StoreMapPage';
 import { Leaf, ExternalLink } from 'lucide-react';
+import { API_DOCS_URL, fetchProducts } from './services/api';
+
+const VALID_TABS = ['catalog', 'optimizer', 'comparator', 'dashboard', 'map', 'stores'];
+
+function getTabFromHash() {
+  if (typeof window === 'undefined') return 'catalog';
+  const raw = window.location.hash.replace('#', '').toLowerCase();
+  if (raw === 'stores') return 'map';
+  return VALID_TABS.includes(raw) ? raw : 'catalog';
+}
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState('catalog');
+  const [activeTab, setActiveTab] = useState(getTabFromHash);
   const [isScannerOpen, setIsScannerOpen] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [compareProduct, setCompareProduct] = useState(null);
   const [detailProduct, setDetailProduct] = useState(null);
   const [optimizerConfig, setOptimizerConfig] = useState(null);
   const [scannedProductDiff, setScannedProductDiff] = useState(null);
+
+  const handleTabChange = useCallback((tab) => {
+    const target = tab === 'stores' ? 'map' : tab;
+    setActiveTab(target);
+    if (window.location.hash !== `#${target}`) {
+      window.location.hash = target;
+    }
+  }, []);
+
+  useEffect(() => {
+    const onHashChange = () => {
+      const tab = getTabFromHash();
+      setActiveTab(tab);
+    };
+    window.addEventListener('hashchange', onHashChange);
+    if (!window.location.hash) {
+      window.location.hash = 'catalog';
+    }
+    return () => window.removeEventListener('hashchange', onHashChange);
+  }, []);
 
   // Cart State with LocalStorage persistence
   const [cartItems, setCartItems] = useState(() => {
@@ -52,7 +82,7 @@ export default function App() {
   }, [cartItems]);
 
   // Derived metrics & backwards-compatible basket IDs
-  const basketProductIds = cartItems.map((item) => item.product.id);
+  const basketProductIds = useMemo(() => cartItems.map((item) => item.product.id), [cartItems]);
   const totalCartCount = cartItems.reduce((acc, item) => acc + item.quantity, 0);
   const totalCartAmount = cartItems.reduce((acc, item) => acc + item.product.price * item.quantity, 0);
 
@@ -104,18 +134,19 @@ export default function App() {
 
   const handleSelectForCompare = (product) => {
     setCompareProduct(product);
-    setActiveTab('comparator');
+    handleTabChange('comparator');
   };
 
   const handleGoToOptimizerFromCart = (items, totalAmount) => {
-    // Determine suggested budget: round up to nearest 1000 or at least 5000
-    const suggestedBudget = Math.max(Math.ceil(totalAmount / 1000) * 1000, 5000);
+    // Determine suggested budget: round up to nearest 1000 and clamp to slider range [3000, 50000]
+    const rounded = Math.ceil(totalAmount / 1000) * 1000;
+    const suggestedBudget = Math.min(50000, Math.max(3000, rounded));
     setOptimizerConfig({
       onlyUseBasket: true,
       budget: suggestedBudget,
       trigger: Date.now()
     });
-    setActiveTab('optimizer');
+    handleTabChange('optimizer');
     setIsCartOpen(false);
   };
 
@@ -145,12 +176,32 @@ export default function App() {
     });
   };
 
+  const handleLoadPresetBasket = useCallback(async (productIds, suggestedBudget) => {
+    try {
+      const all = await fetchProducts();
+      const selected = all.filter((p) => productIds.includes(p.id));
+      const orderedItems = productIds
+        .map((id) => selected.find((p) => p.id === id))
+        .filter(Boolean)
+        .map((product) => ({ product, quantity: 1 }));
+
+      setCartItems(orderedItems);
+      setOptimizerConfig({
+        onlyUseBasket: true,
+        budget: suggestedBudget,
+        trigger: Date.now()
+      });
+    } catch (e) {
+      console.error('Error loading preset basket', e);
+    }
+  }, []);
+
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
       {/* Top Sticky Navigation */}
       <Navbar
         activeTab={activeTab}
-        setActiveTab={setActiveTab}
+        setActiveTab={handleTabChange}
         onOpenScanner={() => setIsScannerOpen(true)}
       />
 
@@ -163,17 +214,21 @@ export default function App() {
             basketProductIds={basketProductIds}
             onOpenDetails={(p) => setDetailProduct(p)}
             scannedProductDiff={scannedProductDiff}
+            onLoadPresetBasket={handleLoadPresetBasket}
+            onGoToOptimizer={() => handleTabChange('optimizer')}
           />
         )}
 
         {activeTab === 'optimizer' && (
           <OptimizerPage
             basketProductIds={basketProductIds}
+            cartItems={cartItems}
             onSelectForCompare={handleSelectForCompare}
             onToggleBasket={handleToggleBasket}
             onOpenDetails={(p) => setDetailProduct(p)}
             optimizerConfig={optimizerConfig}
             onAdoptSubstitutions={handleAdoptSubstitutions}
+            onLoadPresetBasket={handleLoadPresetBasket}
           />
         )}
 
@@ -197,7 +252,6 @@ export default function App() {
 
       {/* Floating Action Button for Cart */}
       <CartFloatingButton
-        isOpen={isCartOpen}
         onToggle={() => setIsCartOpen((prev) => !prev)}
         itemCount={totalCartCount}
         totalAmount={totalCartAmount}
@@ -213,7 +267,7 @@ export default function App() {
         onClearCart={handleClearCart}
         onSelectForCompare={handleSelectForCompare}
         onGoToOptimizer={handleGoToOptimizerFromCart}
-        onGoToCatalog={() => setActiveTab('catalog')}
+        onGoToCatalog={() => handleTabChange('catalog')}
       />
 
       {/* Barcode Scanner Modal (Accessible globally) */}
@@ -263,12 +317,13 @@ export default function App() {
 
           <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'center', fontSize: '0.85rem' }}>
             <a
-              href="http://localhost:8000/docs"
+              href={API_DOCS_URL}
               target="_blank"
               rel="noreferrer"
               style={{ color: 'var(--text-sub)', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.35rem' }}
             >
               <span>Swagger API Docs</span>
+
               <ExternalLink size={13} />
             </a>
             <a

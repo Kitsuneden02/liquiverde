@@ -1,11 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
-  Sliders,
   DollarSign,
   Leaf,
   Sparkles,
   AlertCircle,
-  ShoppingCart,
   RefreshCw,
   CheckCircle2,
   TrendingUp,
@@ -13,8 +11,9 @@ import {
   ArrowRight,
   Check
 } from 'lucide-react';
-import { optimizeKnapsack, fetchProducts } from '../services/api';
+import { optimizeKnapsack } from '../services/api';
 import ProductCard from '../components/ProductCard';
+import { BASKET_PRESETS } from '../utils/presets';
 
 const BUDGET_PRESETS = [5000, 10000, 15000, 25000, 40000];
 
@@ -265,11 +264,13 @@ function SubstitutionCard({ sub, onAdoptOne, onOpenDetails }) {
 
 export default function OptimizerPage({
   basketProductIds = [],
+  cartItems = [],
   onSelectForCompare,
   onToggleBasket,
   onOpenDetails,
   optimizerConfig,
-  onAdoptSubstitutions
+  onAdoptSubstitutions,
+  onLoadPresetBasket
 }) {
   const [budget, setBudget] = useState(optimizerConfig?.budget || 15000);
   const [sustainabilityWeight, setSustainabilityWeight] = useState(0.5);
@@ -280,19 +281,73 @@ export default function OptimizerPage({
   const [optimizationResult, setOptimizationResult] = useState(null);
   const [error, setError] = useState(null);
   const [appliedAll, setAppliedAll] = useState(false);
+  const [selectedPresetId, setSelectedPresetId] = useState(null);
 
-  const handleRunOptimization = async (overrideParams = {}) => {
+  // Sync when optimizerConfig changes from external button (e.g. cart or catalog)
+  const [prevTrigger, setPrevTrigger] = useState(optimizerConfig?.trigger);
+  if (optimizerConfig?.trigger && optimizerConfig.trigger !== prevTrigger) {
+    setPrevTrigger(optimizerConfig.trigger);
+    if (optimizerConfig.budget) {
+      setBudget(optimizerConfig.budget);
+    }
+    setOnlyUseBasket(Boolean(optimizerConfig.onlyUseBasket && basketProductIds.length > 0));
+  }
+
+  // Identify if the current basket matches one of the presets exactly
+  const matchingPreset = useMemo(() => {
+    if (!basketProductIds || basketProductIds.length === 0) return null;
+    return (
+      BASKET_PRESETS.find(
+        (p) =>
+          p.productIds.length === basketProductIds.length &&
+          p.productIds.every((id) => basketProductIds.includes(id))
+      ) || null
+    );
+  }, [basketProductIds]);
+
+  const activePreset =
+    (selectedPresetId && BASKET_PRESETS.find((p) => p.id === selectedPresetId)) ||
+    matchingPreset;
+
+  const handleSelectPreset = useCallback(async (preset) => {
+    setSelectedPresetId(preset.id);
+    setBudget(preset.budget);
+    setOnlyUseBasket(true);
     setLoading(true);
     setError(null);
     try {
-      const activeBudget = overrideParams.budget !== undefined ? overrideParams.budget : budget;
-      const activeOnlyBasket = overrideParams.onlyUseBasket !== undefined ? overrideParams.onlyUseBasket : onlyUseBasket;
-      const activeWeight = overrideParams.sustainabilityWeight !== undefined ? overrideParams.sustainabilityWeight : sustainabilityWeight;
-
       const payload = {
-        budget: Number(activeBudget),
-        sustainability_weight: Number(activeWeight),
-        product_ids: activeOnlyBasket && basketProductIds.length > 0 ? basketProductIds : null,
+        budget: Number(preset.budget),
+        sustainability_weight: Number(sustainabilityWeight),
+        items: preset.productIds.map((id) => ({ product_id: id, quantity: 1 })),
+        product_ids: preset.productIds,
+        mandatory_product_ids: []
+      };
+      const result = await optimizeKnapsack(payload);
+      setOptimizationResult(result);
+      setAppliedAll(false);
+    } catch (err) {
+      setError(err.message || 'Error al calcular la optimización de la plantilla');
+    } finally {
+      setLoading(false);
+    }
+
+    if (onLoadPresetBasket) {
+      onLoadPresetBasket(preset.productIds, preset.budget);
+    }
+  }, [sustainabilityWeight, onLoadPresetBasket]);
+
+  const handleRunOptimization = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const payload = {
+        budget: Number(budget),
+        sustainability_weight: Number(sustainabilityWeight),
+        items: onlyUseBasket && cartItems && cartItems.length > 0
+          ? cartItems.map((item) => ({ product_id: item.product.id, quantity: item.quantity }))
+          : null,
+        product_ids: onlyUseBasket && basketProductIds.length > 0 ? basketProductIds : null,
         mandatory_product_ids: []
       };
 
@@ -304,33 +359,15 @@ export default function OptimizerPage({
     } finally {
       setLoading(false);
     }
-  };
+  }, [budget, sustainabilityWeight, onlyUseBasket, cartItems, basketProductIds]);
 
-  // Sync when optimizerConfig changes from external button (e.g. cart)
-  useEffect(() => {
-    if (optimizerConfig && optimizerConfig.trigger) {
-      const targetBudget = optimizerConfig.budget || budget;
-      const targetOnlyBasket = Boolean(optimizerConfig.onlyUseBasket && basketProductIds.length > 0);
-      setBudget(targetBudget);
-      setOnlyUseBasket(targetOnlyBasket);
-      handleRunOptimization({
-        budget: targetBudget,
-        onlyUseBasket: targetOnlyBasket
-      });
-    }
-  }, [optimizerConfig?.trigger]);
-
-  // Debounced auto-recalculation when slider, budget, or basket toggle changes
+  // Debounced auto-recalculation when parameters change
   useEffect(() => {
     const timer = setTimeout(() => {
-      handleRunOptimization({
-        budget,
-        onlyUseBasket,
-        sustainabilityWeight
-      });
+      handleRunOptimization();
     }, 220);
     return () => clearTimeout(timer);
-  }, [budget, onlyUseBasket, sustainabilityWeight, basketProductIds.length]);
+  }, [handleRunOptimization]);
 
   return (
     <div className="container" style={{ padding: '2rem 1.5rem 4rem' }}>
@@ -429,14 +466,153 @@ export default function OptimizerPage({
           </div>
         </div>
 
+        {/* Plantillas Rápidas de Canasta */}
+        <div style={{
+          marginTop: '1.8rem',
+          paddingTop: '1.2rem',
+          borderTop: '1px solid var(--border-light)'
+        }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.85rem', flexWrap: 'wrap', gap: '0.5rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <Sparkles size={18} color="var(--primary-light)" />
+              <span style={{ fontSize: '0.88rem', fontWeight: 700, color: '#ffffff', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                Plantillas Rápidas de Canasta
+              </span>
+            </div>
+            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+              Carga canastas curadas y calcula su optimización de inmediato
+            </span>
+          </div>
+
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+            gap: '0.85rem',
+            marginBottom: '0.75rem'
+          }}>
+            {BASKET_PRESETS.map((preset) => {
+              const isActive = activePreset?.id === preset.id;
+              return (
+                <button
+                  key={preset.id}
+                  type="button"
+                  onClick={() => handleSelectPreset(preset)}
+                  style={{
+                    background: isActive ? 'rgba(16, 185, 129, 0.12)' : 'rgba(255, 255, 255, 0.03)',
+                    border: `1px solid ${isActive ? 'var(--primary-light)' : 'rgba(52, 211, 153, 0.25)'}`,
+                    boxShadow: isActive ? '0 0 14px rgba(16, 185, 129, 0.22)' : 'none',
+                    borderRadius: 'var(--radius-sm)',
+                    padding: '0.85rem 1rem',
+                    textAlign: 'left',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '0.35rem',
+                    transition: 'all 0.2s ease',
+                    position: 'relative'
+                  }}
+                  onMouseOver={(e) => {
+                    e.currentTarget.style.borderColor = 'var(--primary-light)';
+                    e.currentTarget.style.background = 'rgba(16, 185, 129, 0.15)';
+                    e.currentTarget.style.transform = 'translateY(-2px)';
+                  }}
+                  onMouseOut={(e) => {
+                    e.currentTarget.style.borderColor = isActive ? 'var(--primary-light)' : 'rgba(52, 211, 153, 0.25)';
+                    e.currentTarget.style.background = isActive ? 'rgba(16, 185, 129, 0.12)' : 'rgba(255, 255, 255, 0.03)';
+                    e.currentTarget.style.transform = 'translateY(0)';
+                  }}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span style={{ fontSize: '1.25rem' }}>{preset.icon}</span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                      {isActive && (
+                        <span style={{
+                          fontSize: '0.68rem',
+                          fontWeight: 700,
+                          color: '#34d399',
+                          background: 'rgba(52, 211, 153, 0.18)',
+                          padding: '0.15rem 0.4rem',
+                          borderRadius: '4px',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '0.2rem'
+                        }}>
+                          <Check size={11} /> Activa
+                        </span>
+                      )}
+                      <span style={{
+                        fontSize: '0.72rem',
+                        fontWeight: 700,
+                        color: 'var(--primary-light)',
+                        background: 'rgba(16, 185, 129, 0.15)',
+                        padding: '0.15rem 0.45rem',
+                        borderRadius: '4px'
+                      }}>
+                        ${preset.budget.toLocaleString('es-CL')}
+                      </span>
+                    </div>
+                  </div>
+                  <div style={{ fontSize: '0.9rem', fontWeight: 700, color: '#ffffff', marginTop: '0.15rem' }}>
+                    {preset.title}
+                  </div>
+                  <div style={{ fontSize: '0.74rem', color: 'var(--text-muted)', lineHeight: 1.3 }}>
+                    {preset.summary}
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Feedback banner showing selected preset details */}
+          {activePreset && (
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              background: 'rgba(16, 185, 129, 0.09)',
+              border: '1px solid rgba(52, 211, 153, 0.3)',
+              borderRadius: 'var(--radius-sm)',
+              padding: '0.75rem 1.1rem',
+              fontSize: '0.82rem',
+              marginTop: '0.75rem',
+              flexWrap: 'wrap',
+              gap: '0.6rem'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                <span style={{ fontSize: '1.25rem' }}>{activePreset.icon}</span>
+                <div>
+                  <span style={{ color: '#ffffff' }}>
+                    Plantilla seleccionada: <strong style={{ color: 'var(--primary-light)' }}>{activePreset.title}</strong>
+                  </span>
+                  <div style={{ color: 'var(--text-muted)', fontSize: '0.75rem' }}>
+                    {activePreset.summary} ({activePreset.productIds.length} productos)
+                  </div>
+                </div>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                <span style={{
+                  fontSize: '0.75rem',
+                  fontWeight: 700,
+                  color: 'var(--primary-light)',
+                  background: 'rgba(16, 185, 129, 0.18)',
+                  padding: '0.25rem 0.6rem',
+                  borderRadius: '5px'
+                }}>
+                  Presupuesto ajustado: ${activePreset.budget.toLocaleString('es-CL')}
+                </span>
+              </div>
+            </div>
+          )}
+        </div>
+
         {/* Action button & scope toggle */}
         <div style={{
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
-          marginTop: '1.8rem',
+          marginTop: '1.2rem',
           paddingTop: '1.2rem',
-          borderTop: '1px solid var(--border-light)',
+          borderTop: '1px solid rgba(255, 255, 255, 0.06)',
           flexWrap: 'wrap',
           gap: '1rem'
         }}>
@@ -507,13 +683,13 @@ export default function OptimizerPage({
             {/* Savings CLP Card */}
             <div className="glass-panel" style={{ padding: '1.25rem' }}>
               <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '0.3rem' }}>
-                Ahorro Estimado vs. Convencional
+                {onlyUseBasket ? 'Ahorro Real en Canasta' : 'Ahorro Estimado vs. Convencional'}
               </div>
               <div style={{ fontSize: '1.6rem', fontWeight: 800, color: '#fbbf24' }}>
                 +${Number(optimizationResult.estimated_savings_clp).toLocaleString('es-CL')}
               </div>
               <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.2rem' }}>
-                frente a marcas industriales
+                {onlyUseBasket ? 'frente a tu selección original' : 'frente al producto convencional de la misma familia'}
               </div>
             </div>
 
