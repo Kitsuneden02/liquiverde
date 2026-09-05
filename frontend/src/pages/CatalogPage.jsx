@@ -8,7 +8,8 @@ export default function CatalogPage({
   onSelectForCompare,
   onToggleBasket,
   basketProductIds,
-  onOpenDetails
+  onOpenDetails,
+  refreshTrigger = 0
 }) {
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
@@ -46,7 +47,14 @@ export default function CatalogPage({
       loadCatalog();
     }, 200);
     return () => clearTimeout(timer);
-  }, [searchQuery, selectedCategory, selectedEcoScore, onlyOrganic, onlyFairTrade]);
+  }, [searchQuery, selectedCategory, selectedEcoScore, onlyOrganic, onlyFairTrade, refreshTrigger]);
+
+  // Immediate refresh when a product was scanned into the system
+  useEffect(() => {
+    if (refreshTrigger > 0) {
+      loadCatalog();
+    }
+  }, [refreshTrigger]);
 
   return (
     <div className="container" style={{ padding: '2rem 1.5rem 4rem' }}>

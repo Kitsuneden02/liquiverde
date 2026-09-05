@@ -10,7 +10,8 @@ import {
   Check,
   AlertCircle,
   Video,
-  Info
+  Info,
+  Leaf
 } from 'lucide-react';
 import { Html5Qrcode } from 'html5-qrcode';
 import { fetchProductByBarcode } from '../services/api';
@@ -31,12 +32,14 @@ export default function BarcodeScannerModal({
   onClose,
   onSelectProductForComparison,
   onAddToCart,
-  isInBasket
+  isInBasket,
+  onProductScanned
 }) {
   const [activeTab, setActiveTab] = useState('camera'); // 'camera' | 'manual'
   const [barcodeInput, setBarcodeInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [scannedProduct, setScannedProduct] = useState(null);
+  const [imgError, setImgError] = useState(false);
   const [error, setError] = useState(null);
 
   // Camera scanner state
@@ -143,6 +146,10 @@ export default function BarcodeScannerModal({
       const product = await fetchProductByBarcode(codeToSearch.trim());
       setScannedProduct(product);
       setBarcodeInput(codeToSearch.trim());
+      setImgError(false);
+      if (onProductScanned) {
+        onProductScanned(product);
+      }
     } catch (err) {
       setError(err.message || 'No se pudo encontrar el producto con este código.');
     } finally {
@@ -477,22 +484,59 @@ export default function BarcodeScannerModal({
             padding: '1.25rem',
             animation: 'fadeIn 0.25s ease'
           }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.75rem', gap: '0.5rem' }}>
-              <div>
-                <span style={{ fontSize: '0.72rem', textTransform: 'uppercase', color: 'var(--text-muted)', letterSpacing: '0.05em' }}>
-                  {scannedProduct.brand || 'Marca General'} • {formatCategoryName(scannedProduct.category)}
-                </span>
-                <h3 style={{ fontSize: '1.1rem', marginTop: '0.2rem' }}>{scannedProduct.name}</h3>
-                <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                  EAN: {scannedProduct.barcode}
-                </span>
+            <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', marginBottom: '0.85rem' }}>
+              {/* Product Thumbnail / Image */}
+              <div style={{
+                width: '80px',
+                height: '80px',
+                minWidth: '80px',
+                borderRadius: 'var(--radius-sm)',
+                background: 'radial-gradient(circle at 50% 50%, rgba(20, 50, 40, 0.45) 0%, rgba(7, 18, 14, 0.85) 100%)',
+                border: '1px solid rgba(52, 211, 153, 0.25)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: '0.4rem',
+                overflow: 'hidden',
+                flexShrink: 0
+              }}>
+                {scannedProduct.image_url && !imgError ? (
+                  <img
+                    src={scannedProduct.image_url}
+                    alt={scannedProduct.name}
+                    onError={() => setImgError(true)}
+                    style={{
+                      maxWidth: '100%',
+                      maxHeight: '100%',
+                      objectFit: 'contain',
+                      filter: 'drop-shadow(0 2px 6px rgba(0,0,0,0.5))'
+                    }}
+                  />
+                ) : (
+                  <Leaf size={32} color="var(--primary-light)" />
+                )}
               </div>
-              <div style={{ textAlign: 'right', flexShrink: 0 }}>
-                <span className={`badge-eco badge-eco-${(scannedProduct.eco_score || 'c').toLowerCase()}`}>
-                  {(scannedProduct.eco_score || 'c').toUpperCase()}
-                </span>
-                <div style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--primary-light)', marginTop: '0.25rem' }}>
-                  ${Number(scannedProduct.price).toLocaleString('es-CL')}
+
+              {/* Product Info */}
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '0.5rem' }}>
+                  <div style={{ minWidth: 0, flex: 1 }}>
+                    <span style={{ fontSize: '0.72rem', textTransform: 'uppercase', color: 'var(--text-muted)', letterSpacing: '0.05em' }}>
+                      {scannedProduct.brand || 'Marca General'} • {formatCategoryName(scannedProduct.category)}
+                    </span>
+                    <h3 style={{ fontSize: '1.05rem', marginTop: '0.15rem', lineHeight: 1.3 }}>{scannedProduct.name}</h3>
+                    <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                      EAN: {scannedProduct.barcode}
+                    </span>
+                  </div>
+                  <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                    <span className={`badge-eco badge-eco-${(scannedProduct.eco_score || 'c').toLowerCase()}`}>
+                      {(scannedProduct.eco_score || 'c').toUpperCase()}
+                    </span>
+                    <div style={{ fontSize: '1.05rem', fontWeight: 700, color: 'var(--primary-light)', marginTop: '0.25rem' }}>
+                      ${Number(scannedProduct.price).toLocaleString('es-CL')}
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>

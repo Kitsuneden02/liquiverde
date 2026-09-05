@@ -18,6 +18,7 @@ export default function App() {
   const [compareProduct, setCompareProduct] = useState(null);
   const [detailProduct, setDetailProduct] = useState(null);
   const [optimizerConfig, setOptimizerConfig] = useState(null);
+  const [catalogRefreshTrigger, setCatalogRefreshTrigger] = useState(0);
 
   // Cart State with LocalStorage persistence
   const [cartItems, setCartItems] = useState(() => {
@@ -161,6 +162,7 @@ export default function App() {
             onToggleBasket={handleToggleBasket}
             basketProductIds={basketProductIds}
             onOpenDetails={(p) => setDetailProduct(p)}
+            refreshTrigger={catalogRefreshTrigger}
           />
         )}
 
@@ -221,6 +223,7 @@ export default function App() {
         onSelectProductForComparison={handleSelectForCompare}
         onAddToCart={handleAddToCart}
         isInBasket={(productId) => basketProductIds.includes(productId)}
+        onProductScanned={() => setCatalogRefreshTrigger((prev) => prev + 1)}
       />
 
       {/* Detailed Product Modal */}
