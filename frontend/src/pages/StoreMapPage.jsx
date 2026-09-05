@@ -128,21 +128,6 @@ export default function StoreMapPage() {
     <div className="container" style={{ padding: '2rem 1.5rem 4rem' }}>
       {/* Encabezado */}
       <div style={{ marginBottom: '2rem', textAlign: 'center' }}>
-        <div style={{
-          display: 'inline-flex',
-          alignItems: 'center',
-          gap: '0.45rem',
-          background: 'rgba(16, 185, 129, 0.12)',
-          color: 'var(--primary-light)',
-          padding: '0.35rem 0.9rem',
-          borderRadius: 'var(--radius-full)',
-          fontSize: '0.8rem',
-          fontWeight: 600,
-          marginBottom: '0.8rem',
-          border: '1px solid rgba(16, 185, 129, 0.25)'
-        }}>
-          <Compass size={14} /> Geolocalización y Puntos de Abastecimiento Local
-        </div>
         <h1 style={{ fontSize: '2.4rem', marginBottom: '0.5rem' }}>
           Mapa de Tiendas Sostenibles y Rutas
         </h1>

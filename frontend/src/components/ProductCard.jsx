@@ -67,19 +67,24 @@ export default function ProductCard({
       </div>
 
       {/* Product Image and Stylized Fallback */}
-      <div style={{
-        height: '160px',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        background: 'radial-gradient(circle at 50% 50%, rgba(20, 50, 40, 0.45) 0%, rgba(7, 18, 14, 0.85) 100%)',
-        borderRadius: 'var(--radius-sm)',
-        marginBottom: '0.9rem',
-        overflow: 'hidden',
-        position: 'relative',
-        padding: '0.6rem',
-        border: '1px solid rgba(255, 255, 255, 0.05)'
-      }}>
+      <div
+        onClick={() => onOpenDetails && onOpenDetails(product)}
+        title={`Ver detalles de ${product.name}`}
+        style={{
+          height: '160px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          background: 'radial-gradient(circle at 50% 50%, rgba(20, 50, 40, 0.45) 0%, rgba(7, 18, 14, 0.85) 100%)',
+          borderRadius: 'var(--radius-sm)',
+          marginBottom: '0.9rem',
+          overflow: 'hidden',
+          position: 'relative',
+          padding: '0.6rem',
+          border: '1px solid rgba(255, 255, 255, 0.05)',
+          cursor: onOpenDetails ? 'pointer' : 'default'
+        }}
+      >
         {product.image_url && !imgError ? (
           <img
             src={product.image_url}

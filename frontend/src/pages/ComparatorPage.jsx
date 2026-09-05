@@ -210,23 +210,6 @@ export default function ComparatorPage({
     <div className="container" style={{ padding: '2rem 1.5rem 4rem' }}>
       {/* Header */}
       <div style={{ marginBottom: '2.5rem', textAlign: 'center' }}>
-        <div
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '0.45rem',
-            background: 'rgba(16, 185, 129, 0.12)',
-            color: 'var(--primary-light)',
-            padding: '0.35rem 0.9rem',
-            borderRadius: 'var(--radius-full)',
-            fontSize: '0.8rem',
-            fontWeight: 600,
-            marginBottom: '0.8rem',
-            border: '1px solid rgba(16, 185, 129, 0.25)'
-          }}
-        >
-          <RefreshCw size={14} /> Motor de Sustitución Inteligente & Ahorro
-        </div>
         <h1 style={{ fontSize: '2.4rem', marginBottom: '0.5rem' }}>
           Comparador Lado a Lado de Alternativas
         </h1>

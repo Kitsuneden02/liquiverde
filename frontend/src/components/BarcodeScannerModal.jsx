@@ -266,7 +266,7 @@ export default function BarcodeScannerModal({
               transition: 'all 0.15s'
             }}
           >
-            <Search size={16} /> Ingreso Manual & Demos
+            <Search size={16} /> Ingreso Manual
           </button>
         </div>
 
