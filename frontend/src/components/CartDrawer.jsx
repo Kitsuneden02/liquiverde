@@ -472,9 +472,9 @@ export default function CartDrawer({
 
               {/* Items List */}
               <div className="cart-items-list">
-                {cartItems.map((item) => (
+                {cartItems.map((item, idx) => (
                   <CartItemRow
-                    key={item.product.id}
+                    key={`cart-${item.product.id}-${idx}`}
                     item={item}
                     onUpdateQuantity={onUpdateQuantity}
                     onRemoveItem={onRemoveItem}

@@ -294,7 +294,7 @@
     "organic": false,
     "eco_score": "c",
     "nutri_score": "a",
-    "substitute_id": 14,
+    "substitute_id": null,
     "image_url": "https://images.openfoodfacts.org/images/products/780/281/000/6592/front_es.15.400.jpg",
     "sustainability_score": 61.6
   },
@@ -432,7 +432,7 @@
     "organic": false,
     "eco_score": "c",
     "nutri_score": "c",
-    "substitute_id": 20,
+    "substitute_id": null,
     "image_url": "https://images.openfoodfacts.org/images/products/780/257/500/4437/front_es.3.400.jpg",
     "sustainability_score": 62.5
   },

@@ -13,7 +13,7 @@ Implementa:
 """
 
 from typing import List, Dict, Any, Optional, Tuple
-from app.algorithms.substitution import generate_substitution_reason
+from app.algorithms.substitution import generate_substitution_reason, are_products_compatible_substitutes
 
 def compute_item_utility(product: Any, alpha: float) -> float:
     """
@@ -232,11 +232,10 @@ def optimize_basket_with_substitutes(
             if alt.id == orig.id:
                 continue
 
-            is_direct = (orig.substitute_id == alt.id or getattr(alt, "substitute_id", None) == orig.id)
-            same_cat = (alt.category == orig.category)
-
-            if not (is_direct or same_cat):
+            if not are_products_compatible_substitutes(orig, alt):
                 continue
+
+            is_direct = (orig.substitute_id == alt.id)
 
             # Es un sustituto viable si aporta ventaja en precio, CO2, o puntuación
             alt_price = float(alt.price)

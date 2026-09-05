@@ -44,14 +44,96 @@ def generate_substitution_reason(
     return " | ".join(reasons)
 
 
+def are_products_compatible_substitutes(orig: Any, alt: Any) -> bool:
+    """
+    Determina si dos productos son culinaria y funcionalmente compatibles para sustitución.
+    Previene sustituciones incoherentes (ej: Aceite por Salsa de Tomate, o Spaghetti por Salsa).
+    """
+    if orig.id == alt.id:
+        return False
+
+    orig_cat = getattr(orig, "category", "")
+    alt_cat = getattr(alt, "category", "")
+    if orig_cat != alt_cat:
+        return False
+
+    orig_sub_id = getattr(orig, "substitute_id", None)
+    # Si tiene enlace directo curado dentro de la misma categoría, respetarlo
+    if orig_sub_id is not None and orig_sub_id == alt.id:
+        return True
+
+    orig_name = (getattr(orig, "name", "") or "").lower()
+    alt_name = (getattr(alt, "name", "") or "").lower()
+
+    # 1. Aceites: solo pueden reemplazarse por otros aceites
+    if "aceite" in orig_name or "aceite" in alt_name:
+        return "aceite" in orig_name and "aceite" in alt_name
+
+    # 2. Salsas de tomate: solo por salsas o purés de tomate
+    if "salsa" in orig_name or "tomate" in orig_name or "salsa" in alt_name or "tomate" in alt_name:
+        return ("salsa" in orig_name or "tomate" in orig_name) and ("salsa" in alt_name or "tomate" in alt_name)
+
+    # 3. Cremas dulces / Untables (Nutella, Pasta de Maní)
+    sweet_spreads = ["nutella", "avellana", "maní", "mani", "mermelada", "cacao"]
+    if any(w in orig_name for w in sweet_spreads) or any(w in alt_name for w in sweet_spreads):
+        return any(w in orig_name for w in sweet_spreads) and any(w in alt_name for w in sweet_spreads)
+
+    # 4. Pastas y fideos:
+    pastas = ["spaghetti", "fideo", "pasta", "tallarín", "tallarin"]
+    if any(w in orig_name for w in pastas) or any(w in alt_name for w in pastas):
+        return any(w in orig_name for w in pastas) and any(w in alt_name for w in pastas)
+
+    # 5. Arroz y granos:
+    rice = ["arroz", "quinoa", "quínoa"]
+    if any(w in orig_name for w in rice) or any(w in alt_name for w in rice):
+        return any(w in orig_name for w in rice) and any(w in alt_name for w in rice)
+
+    # 6. Cereales de desayuno y Avena:
+    cereals = ["cereal", "avena", "chocapic", "quaker"]
+    if any(w in orig_name for w in cereals) or any(w in alt_name for w in cereals):
+        return any(w in orig_name for w in cereals) and any(w in alt_name for w in cereals)
+
+    # 7. Semillas (Chía, Linaza):
+    seeds = ["semilla", "chía", "chia", "linaza"]
+    if any(w in orig_name for w in seeds) or any(w in alt_name for w in seeds):
+        return any(w in orig_name for w in seeds) and any(w in alt_name for w in seeds)
+
+    # 8. Bebidas:
+    healthy_drinks = ["infusión", "infusion", "té", "te", "agua", "cachantun"]
+    sugary_drinks = ["coca-cola", "powerade", "fanta", "sprite"]
+    if any(w in orig_name for w in healthy_drinks) and any(w in alt_name for w in sugary_drinks):
+        return False
+    if "coca-cola" in orig_name or "powerade" in orig_name:
+        return any(w in alt_name for w in ["infusión", "infusion", "té", "te", "agua", "bebida", "jugo"])
+
+    # 9. Panes:
+    if "pan" in orig_name or "pan" in alt_name:
+        return "pan" in orig_name and "pan" in alt_name
+
+    # 10. Detergentes / Limpieza:
+    if "detergente" in orig_name or "detergente" in alt_name:
+        return "detergente" in orig_name and "detergente" in alt_name
+
+    # 11. Lácteos y vegetales:
+    dairy = ["leche", "avena", "soya", "almendra", "vegetal"]
+    if any(w in orig_name for w in dairy) or any(w in alt_name for w in dairy):
+        return any(w in orig_name for w in dairy) and any(w in alt_name for w in dairy)
+
+    # 12. Proteínas (carnes rojas, pollo, legumbres, pescado, tofu):
+    proteins = ["carne", "vacuno", "hamburguesa", "lenteja", "garbanzo", "poroto", "jurel", "tofu", "soya"]
+    if any(w in orig_name for w in proteins) or any(w in alt_name for w in proteins):
+        return any(w in orig_name for w in proteins) and any(w in alt_name for w in proteins)
+
+    return True
+
+
 def find_substitutes_for_product(
     original_product: Any,
     candidate_products: List[Any],
     max_results: int = 3
 ) -> List[Dict[str, Any]]:
     """
-    Evalúa todos los candidatos de la misma categoría (o con enlace directo) y los ordena
-    según la mejora combinada en sostenibilidad y ahorro económico.
+    Evalúa todos los candidatos y los filtra con compatibilidad semántica y culinaria.
     """
     recommendations = []
     orig_price = float(original_product.price)
@@ -60,15 +142,10 @@ def find_substitutes_for_product(
     orig_score = float(original_product.sustainability_score)
 
     for alt in candidate_products:
-        if alt.id == original_product.id:
+        if not are_products_compatible_substitutes(original_product, alt):
             continue
 
-        # Debe ser de la misma categoría o ser el sustituto explícito asignado
         is_direct_substitute = (original_product.substitute_id == alt.id)
-        same_category = (alt.category == original_product.category)
-
-        if not (is_direct_substitute or same_category):
-            continue
 
         alt_price = float(alt.price)
         alt_co2 = float(alt.co2_kg)

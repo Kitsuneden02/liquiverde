@@ -707,9 +707,9 @@ export default function OptimizerPage({
               gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
               gap: '1.5rem'
             }}>
-              {optimizationResult.selected_products.map((prod) => (
+              {optimizationResult.selected_products.map((prod, index) => (
                 <ProductCard
-                  key={prod.id}
+                  key={`opt-prod-${prod.id}-${index}`}
                   product={prod}
                   onSelectForCompare={onSelectForCompare}
                   onToggleBasket={onToggleBasket}

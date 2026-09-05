@@ -23,7 +23,20 @@ export default function App() {
   const [cartItems, setCartItems] = useState(() => {
     try {
       const saved = localStorage.getItem('liquiverde_cart');
-      return saved ? JSON.parse(saved) : [];
+      if (!saved) return [];
+      const parsed = JSON.parse(saved);
+      if (!Array.isArray(parsed)) return [];
+      const merged = [];
+      for (const item of parsed) {
+        if (!item || !item.product) continue;
+        const existing = merged.find((m) => m.product.id === item.product.id);
+        if (existing) {
+          existing.quantity = (existing.quantity || 1) + (item.quantity || 1);
+        } else {
+          merged.push({ ...item, quantity: item.quantity || 1 });
+        }
+      }
+      return merged;
     } catch {
       return [];
     }
@@ -114,7 +127,17 @@ export default function App() {
         const altProd = sub.recommended_product;
         const index = next.findIndex((item) => item.product.id === origId);
         if (index >= 0) {
-          next[index] = { ...next[index], product: altProd };
+          const qty = next[index].quantity;
+          const existingAltIndex = next.findIndex((item, i) => i !== index && item.product.id === altProd.id);
+          if (existingAltIndex >= 0) {
+            next[existingAltIndex] = {
+              ...next[existingAltIndex],
+              quantity: next[existingAltIndex].quantity + qty
+            };
+            next.splice(index, 1);
+          } else {
+            next[index] = { ...next[index], product: altProd };
+          }
         }
       }
       return next;
